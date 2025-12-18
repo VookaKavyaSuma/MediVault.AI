@@ -11,12 +11,86 @@
   padding: 20px;
 }
 
+/* Header row (Hello + Share access) */
+.home-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
 .home-content h1 {
   color: #1e88e5;
-  margin-bottom: 8px;
+  margin: 0;
 }
 
 .home-content p {
   color: #333;
   margin-bottom: 20px;
+}
+
+/* Small Share Access button */
+.share-access-btn {
+  background: none;
+  border: none;
+  background-color: #1e88e5;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px 6px;
+  font-weight: 500;
+  width: 150px;
+  height: 50px;
+}
+
+.share-access-btn:hover {
+  background-color: #1565c0;
+  color: white;
+}
+
+/* QR Modal */
+.qr-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 200;
+}
+
+.qr-modal {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  text-align: center;
+  width: 300px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.qr-modal h3 {
+  color: #1e88e5;
+  margin-bottom: 14px;
+}
+
+.qr-note {
+  font-size: 12px;
+  color: #777;
+  margin: 10px 0;
+}
+
+.qr-modal button {
+  background: #e53935;
+  color: white;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.qr-modal button:hover {
+  background: #c62828;
 }

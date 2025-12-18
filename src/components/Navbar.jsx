@@ -55,7 +55,7 @@ function Navbar() {
           )}
           {role === "patient" && (
             <>
-              <li onClick={() => handleNavigation("/home")}>My Dashboard</li>
+              <li onClick={() => handleNavigation("/home")}>Dashboard</li>
               <li onClick={() => handleNavigation("/records")}>My Records</li>
               <li onClick={() => handleNavigation("/certificates")}>Certificates</li>
               <li onClick={() => handleNavigation("/ai-summary")}>AI Summary</li>
