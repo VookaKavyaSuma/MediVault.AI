@@ -22,6 +22,7 @@ function Login() {
     } else if (email === "patient@medivault.ai" && password === "patient123") {
         localStorage.setItem("isLoggedIn", "true");
         localStorage.setItem("role", "patient");
+        localStorage.setItem("patientName", "Kavya Suma"); // store patient name
         navigate("/home");
     } else {
         setError("Invalid email or password");
