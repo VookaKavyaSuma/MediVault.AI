@@ -16,9 +16,15 @@ function Login() {
     e.preventDefault();
 
     if (email === correctEmail && password === correctPassword) {
+      localStorage.setItem("isLoggedIn", "true");
+      localStorage.setItem("role", "doctor");
       navigate("/home"); 
+    } else if (email === "patient@medivault.ai" && password === "patient123") {
+        localStorage.setItem("isLoggedIn", "true");
+        localStorage.setItem("role", "patient");
+        navigate("/home");
     } else {
-      setError("Invalid email or password");
+        setError("Invalid email or password");
     }
   };
 
