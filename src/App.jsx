@@ -1,6 +1,10 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
+import Records from "./pages/Records";
+import Certificates from "./pages/Certificates";
+import AISummary from "./pages/AISummary";
+import "./App.css";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -15,6 +19,27 @@ function App() {
           </ProtectedRoute>
         }
          />
+         <Route path="/records" 
+        element={
+          <ProtectedRoute>
+          <Records />
+          </ProtectedRoute>
+        }
+        />
+        <Route path="/certificates"
+        element={
+          <ProtectedRoute>
+            <Certificates />
+          </ProtectedRoute>
+        }
+         />
+        <Route path="/ai-summary"
+        element={
+          <ProtectedRoute>
+            <AISummary />
+          </ProtectedRoute>
+     }
+      />
       </Routes>
     </BrowserRouter>
   );

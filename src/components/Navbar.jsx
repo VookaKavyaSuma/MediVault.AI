@@ -11,6 +11,7 @@ function Navbar() {
   const handleLogout = () => {
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("role"); 
+    localStorage.removeItem("patientName");
     setOpen(false);
     navigate("/");
   };
@@ -26,6 +27,12 @@ function Navbar() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // Navigation function for links
+  const handleNavigation = (path) => {
+    navigate(path);
+    setOpen(false);
+  };
+
   return (
     <>
       <nav className="navbar">
@@ -40,18 +47,18 @@ function Navbar() {
         <ul className="nav-links">
           {role === "doctor" && (
             <>
-              <li>Doctor Dashboard</li>
-              <li>Patients</li>
-              <li>Certificates</li>
-              <li>AI Tools</li>
+              <li onClick={() => handleNavigation("/home")}>Doctor Dashboard</li>
+              <li onClick={() => handleNavigation("/patients")}>Patients</li>
+              <li onClick={() => handleNavigation("/certificates")}>Certificates</li>
+              <li onClick={() => handleNavigation("/ai-tools")}>AI Tools</li>
             </>
           )}
           {role === "patient" && (
             <>
-              <li>My Dashboard</li>
-              <li>My Records</li>
-              <li>Certificates</li>
-              <li>AI Summary</li>
+              <li onClick={() => handleNavigation("/home")}>My Dashboard</li>
+              <li onClick={() => handleNavigation("/records")}>My Records</li>
+              <li onClick={() => handleNavigation("/certificates")}>Certificates</li>
+              <li onClick={() => handleNavigation("/ai-summary")}>AI Summary</li>
             </>
           )}
           <li onClick={handleLogout}>Logout</li>
@@ -59,23 +66,23 @@ function Navbar() {
       </nav>
 
       {/* Mobile Menu */}
-      <div className={`mobile-menu ${open ? "open" : ""}`}>
+    <div className={`mobile-menu ${open ? "open" : ""}`}>
 
       {role === "doctor" && (
         <>
-          <p onClick={() => setOpen(false)}>Doctor Dashboard</p>
-          <p onClick={() => setOpen(false)}>Patients</p>
-          <p onClick={() => setOpen(false)}>Certificates</p>
-          <p onClick={() => setOpen(false)}>AI Tools</p>
+          <p onClick={() => { navigate("/home"); setOpen(false); }}>Doctor Dashboard</p>
+          <p onClick={() => { navigate("/patients"); setOpen(false); }}>Patients</p>
+          <p onClick={() => { navigate("/certificates"); setOpen(false); }}>Certificates</p>
+          <p onClick={() => { navigate("/ai-tools"); setOpen(false); }}>AI Tools</p>
         </>
       )}
 
       {role === "patient" && (
         <>
-          <p onClick={() => setOpen(false)}>My Dashboard</p>
-          <p onClick={() => setOpen(false)}>My Records</p>
-          <p onClick={() => setOpen(false)}>Certificates</p>
-          <p onClick={() => setOpen(false)}>AI Summary</p>
+          <p onClick={() => { navigate("/home"); setOpen(false); }}>My Dashboard</p>
+          <p onClick={() => { navigate("/records"); setOpen(false); }}>My Records</p>
+          <p onClick={() => { navigate("/certificates"); setOpen(false); }}>Certificates</p>
+          <p onClick={() => { navigate("/ai-summary"); setOpen(false); }}>AI Summary</p>
         </>
       )}
 

@@ -1,0 +1,86 @@
+.ai-page {
+  min-height: 100vh;
+  background: #f9fbff;
+}
+
+.ai-wrapper {
+  max-width: 900px;
+  margin: auto;
+  padding: 90px 20px 40px;
+}
+
+.ai-wrapper h1 {
+  font-size: 28px;
+  color: #1e88e5;
+  margin-bottom: 6px;
+}
+
+.ai-desc {
+  color: #666;
+  margin-bottom: 30px;
+}
+
+.generate-btn {
+  background: #1e88e5;
+  color: white;
+  padding: 10px 22px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-bottom: 30px;
+}
+
+.generate-btn:disabled {
+  background: #90caf9;
+  cursor: not-allowed;
+}
+
+.summary-section {
+  background: white;
+  border-radius: 10px;
+  padding: 20px 24px;
+  box-shadow: 0 4px 12px rgba(30, 136, 229, 0.12);
+}
+
+.summary-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.summary-header h3 {
+  margin: 0;
+  color: #333;
+}
+
+.summary-header span {
+  font-size: 13px;
+  color: #777;
+}
+
+.summary-content {
+  font-size: 15px;
+  line-height: 1.7;
+  color: #444;
+}
+
+.ai-section {
+  margin-top: 25px;
+}
+
+.ai-section h3 {
+  color: #1e88e5;
+  margin-bottom: 12px;
+}
+
+.ai-item {
+  background: white;
+  color: grey;
+  padding: 14px 16px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+  font-size: 14px;
+  line-height: 1.6;
+}
