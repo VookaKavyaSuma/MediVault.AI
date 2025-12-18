@@ -62,3 +62,34 @@
 .download-btn:hover {
   background: white;
 }
+
+.upload-btn {
+  display: inline-block;
+  margin-bottom: 20px;
+  padding: 10px 18px;
+  background: #1e88e5;
+  color: white;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.upload-btn:hover {
+  background: #1565c0;
+}
+
+.view-btn,
+.download-btn {
+  margin-right: 10px;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.view-btn {
+  color: white;
+}
+
+.download-btn {
+  color: white;
+}

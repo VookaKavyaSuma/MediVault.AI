@@ -51,6 +51,8 @@
   color: #333;
   font-weight: 500;
   transition: color 0.2s ease;
+  display: flex;
+  align-items: center;
 }
 
 .nav-links li:hover {

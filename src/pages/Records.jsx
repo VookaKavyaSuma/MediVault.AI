@@ -10,17 +10,28 @@ function Records() {
     { id: 3, name: "Prescription", date: "2025-12-10", type: "PDF" },
   ]);
 
+  const handleDelete = (id) => {
+    const confirmed = window.confirm("Are you sure you want to delete this record?");
+    if (confirmed) {
+        setRecords(records.filter((rec) => rec.id !== id));
+    }
+  };
+
+  const handleUpload = () => {
+    alert("Upload new record clicked!");
+  };
+
   return (
     <div className="records-container">
       <Navbar />
 
       <div className="records-content">
+        <div className="records-header">
         <h1>My Records</h1>
+        
+       <button className="upload-btn" onClick={handleUpload}>Upload New Record</button>
+       </div>
         <p>Manage and view all your medical records securely.</p>
-
-        <div className="upload-btn">
-          <button>Upload New Record</button>
-        </div>
 
         {/* Records Table */}
         <div className="records-table">
@@ -40,7 +51,13 @@ function Records() {
                   <td>{rec.date}</td>
                   <td>{rec.type}</td>
                   <td>
-                    <button>View</button>
+                    <button onClick={() => handleView(rec)}>View</button>
+                    <button
+                    className="delete-btn"
+                    onClick={() => handleDelete(rec.id)}
+                    >
+                    Delete
+                    </button>
                   </td>
                 </tr>
               ))}

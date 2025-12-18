@@ -3,6 +3,7 @@
   background: #f9fbff;
 }
 
+/* Wrapper */
 .ai-wrapper {
   max-width: 900px;
   margin: auto;
@@ -20,67 +21,68 @@
   margin-bottom: 30px;
 }
 
-.generate-btn {
-  background: #1e88e5;
-  color: white;
-  padding: 10px 22px;
-  border: none;
-  border-radius: 6px;
-  font-weight: 500;
-  cursor: pointer;
-  margin-bottom: 30px;
-}
-
-.generate-btn:disabled {
-  background: #90caf9;
-  cursor: not-allowed;
-}
-
-.summary-section {
+/* AI Summary Card (per certificate) */
+.ai-summary-card {
   background: white;
-  border-radius: 10px;
-  padding: 20px 24px;
-  box-shadow: 0 4px 12px rgba(30, 136, 229, 0.12);
+  border-radius: 14px;
+  padding: 24px;
+  margin-bottom: 30px;
+  box-shadow: 0 6px 16px rgba(30, 136, 229, 0.12);
 }
 
-.summary-header {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 12px;
+.ai-summary-card h2 {
+  color: #1e88e5;
+  font-size: 20px;
+  margin-bottom: 4px;
 }
 
-.summary-header h3 {
-  margin: 0;
-  color: #333;
-}
-
-.summary-header span {
+.ai-date {
   font-size: 13px;
   color: #777;
+  display: block;
+  margin-bottom: 18px;
 }
 
-.summary-content {
-  font-size: 15px;
-  line-height: 1.7;
-  color: #444;
-}
-
+/* Category Sections */
 .ai-section {
-  margin-top: 25px;
+  margin-top: 22px;
 }
 
 .ai-section h3 {
   color: #1e88e5;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
+  font-size: 16px;
 }
 
+/* Individual items */
 .ai-item {
-  background: white;
-  color: grey;
+  background: #f5f9ff;
+  color: #444;
   padding: 14px 16px;
   border-radius: 8px;
   margin-bottom: 10px;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
   font-size: 14px;
   line-height: 1.6;
+}
+
+/* Empty state text */
+.ai-wrapper p {
+  font-size: 15px;
+  color: #555;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 600px) {
+  .ai-wrapper {
+    padding: 80px 14px 30px;
+  }
+
+  .ai-summary-card {
+    padding: 18px;
+  }
+
+  .ai-wrapper h1 {
+    font-size: 24px;
+  }
 }

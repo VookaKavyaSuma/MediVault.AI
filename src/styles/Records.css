@@ -11,30 +11,38 @@
   padding: 20px;
 }
 
-.records-content h1 {
-  color: #1e88e5;
-  margin-bottom: 8px;
+/* Header: My Records + Upload Button */
+.records-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
 }
 
+.records-header h1 {
+  color: #1e88e5;
+  margin: 0;
+}
+
+/* Description text */
 .records-content p {
   color: #333;
   margin-bottom: 20px;
 }
 
+/* Upload button (small, aligned right) */
 .upload-btn {
-  margin-bottom: 20px;
-}
-
-.upload-btn button {
   background: #1e88e5;
   color: white;
-  padding: 10px 18px;
+  padding: 6px 14px;
+  font-size: 14px;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
+  width: 150px;
 }
 
-.upload-btn button:hover {
+.upload-btn:hover {
   background: #1565c0;
 }
 
@@ -58,24 +66,43 @@
 
 .records-table th {
   background: #f0f7ff;
-  color: #1e88e5;
+  font-weight: 600;
 }
 
+/* Action buttons */
 .records-table button {
   background: #1e88e5;
   color: white;
-  padding: 6px 12px;
+  padding: 6px 10px;
+  font-size: 13px;
   border: none;
   border-radius: 6px;
   cursor: pointer;
+  margin-right: 8px;
 }
 
 .records-table button:hover {
   background: #1565c0;
 }
 
-/* Responsive for mobile */
+/* Delete button */
+.records-table .delete-btn {
+  margin-top: 5px;
+  background: #e53935;
+}
+
+.records-table .delete-btn:hover {
+  background: #b71c1c;
+}
+
+/* Responsive (Mobile View) */
 @media (max-width: 768px) {
+  .records-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
   .records-table table,
   .records-table thead,
   .records-table tbody,
