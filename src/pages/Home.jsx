@@ -3,6 +3,7 @@ import Chatbot from "../components/ChatBot";
 import "./../styles/Home.css";
 import { useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
+import { useNavigate } from "react-router-dom";
 
 function Home() {
   const role = localStorage.getItem("role");
@@ -10,6 +11,9 @@ function Home() {
 
   const [showQR, setShowQR] = useState(false);
   const [expiryTime, setExpiryTime] = useState(null);
+  const [qrToken, setQrToken] = useState("");
+
+  const navigate = useNavigate();
 
   const generateQR = () => {
     const token = Math.random().toString(36).substring(2);
@@ -22,14 +26,14 @@ function Home() {
     };
 
     localStorage.setItem("qrAccess", JSON.stringify(qrData));
+    
+    setQrToken(token);
     setExpiryTime(expiresAt);
     setShowQR(true);
   };
 
-  const qrValue = expiryTime
-    ? `https://medivault.ai/share?token=${JSON.parse(
-        localStorage.getItem("qrAccess")
-      )?.token}`
+  const qrValue = qrToken
+    ? `https://medivault.ai/share?token=${qrToken}`
     : "";
 
   return (
@@ -54,11 +58,17 @@ function Home() {
 
               <button
                 className="share-access-btn"
-                onClick={() => setShowQR(true)}
+                onClick={generateQR}
               >
                 🔗 Share access
               </button>
-              <button className="notification">🔔</button>
+              <button
+                className="notification"
+                onClick={() => navigate("/notifications")}
+              >
+                🔔
+              </button>
+
             </div>
 
             <p>
@@ -74,10 +84,13 @@ function Home() {
         <div className="qr-modal-overlay">
           <div className="qr-modal">
             <h3>Scan to View Records</h3>
-            <QRCodeSVG value={qrValue} size={180} />
+            {qrValue && <QRCodeSVG value={qrValue} size={180} />}
+            {expiryTime && (
             <p className="qr-note">
-              Valid until: {new Date(expiryTime).toLocaleTimeString()} • Read-only access
+              Valid until: {" "} 
+              {new Date(expiryTime).toLocaleTimeString()} • Read-only access
             </p>
+            )}
             <button onClick={() => setShowQR(false)}>Close</button>
           </div>
         </div>

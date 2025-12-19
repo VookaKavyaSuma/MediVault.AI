@@ -6,6 +6,7 @@ import Certificates from "./pages/Certificates";
 import AISummary from "./pages/AISummary";
 import "./App.css";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Notifications from "./pages/Notifications";
 
 function App() {
   return (
@@ -32,15 +33,22 @@ function App() {
             <Certificates />
           </ProtectedRoute>
         }
-         />
+        />
         <Route path="/ai-summary"
         element={
           <ProtectedRoute>
             <AISummary />
           </ProtectedRoute>
-     }
-      />
-      </Routes>
+        }
+        />
+        <Route path="/notifications" 
+        element={
+          <ProtectedRoute>
+          <Notifications />
+          </ProtectedRoute> 
+        }
+        />
+        </Routes>
     </BrowserRouter>
   );
 }
