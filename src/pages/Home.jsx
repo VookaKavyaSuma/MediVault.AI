@@ -1,4 +1,5 @@
 import Navbar from "../components/Navbar";
+import Chatbot from "../components/ChatBot";
 import "./../styles/Home.css";
 import { useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
@@ -57,6 +58,7 @@ function Home() {
               >
                 🔗 Share access
               </button>
+              <button className="notification">🔔</button>
             </div>
 
             <p>
@@ -80,6 +82,9 @@ function Home() {
           </div>
         </div>
       )}
+
+      {/* Chatbot goes here */}
+      <Chatbot />   
     </div>
   );
 }
