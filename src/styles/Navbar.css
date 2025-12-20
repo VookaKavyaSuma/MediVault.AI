@@ -48,11 +48,11 @@
 
 .nav-links li {
   cursor: pointer;
-  color: #333;
   font-weight: 500;
   transition: color 0.2s ease;
   display: flex;
   align-items: center;
+  color: rgb(92, 198, 92);
 }
 
 .nav-links li:hover {
@@ -84,7 +84,7 @@
   margin: 14px 0;
   font-size: 16px;
   cursor: pointer;
-  color: #333;
+  color: rgb(41, 183, 41);
   transition: color 0.2s ease;
 }
 
