@@ -102,6 +102,7 @@
   padding: 8px 14px;
   font-size: 14px;
   outline: none;
+  width: 90vw;
 }
 
 .chatbot-input button {
@@ -112,6 +113,10 @@
   border-radius: 20px;
   padding: 8px 16px;
   cursor: pointer;
+  width: 7vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 /* Scrollbar */

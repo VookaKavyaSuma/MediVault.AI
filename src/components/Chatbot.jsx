@@ -27,7 +27,7 @@ function Chatbot() {
   return (
     <div className={`chatbot-container ${open ? "open" : ""}`}>
       <div className="chatbot-header">
-        <span onClick={() => setOpen(!open)}>🤖 Chat</span>
+        <span onClick={() => setOpen(!open)}>🤖</span>
 
         {open && (
           <span
@@ -56,7 +56,7 @@ function Chatbot() {
               onChange={(e) => setInput(e.target.value)}
               placeholder="Type your question..."
             />
-            <button onClick={sendMessage}>Send</button>
+            <button onClick={sendMessage}>🚀</button>
           </div>
         </div>
       )}
