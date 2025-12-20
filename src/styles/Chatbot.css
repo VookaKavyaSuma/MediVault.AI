@@ -33,9 +33,12 @@
 
 /* Close button */
 .chatbot-close {
-  font-size: 18px;
+  font-size: 17px;
   cursor: pointer;
   line-height: 1;
+  display: flex;
+  justify-content: flex-end;
+  padding-right: 2%;
 }
 
 /* Chat body */

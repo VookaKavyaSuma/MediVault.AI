@@ -34,7 +34,7 @@ function Chatbot() {
             className="chatbot-close"
             onClick={() => setOpen(false)}
           >
-            ✕
+            ❌
           </span>
         )}
       </div>
