@@ -5,9 +5,10 @@
   right: 24px;
   z-index: 9999;
   font-family: "Segoe UI", system-ui, sans-serif;
+  width: auto;
 }
 
-/* Chat button / header */
+/* Chat button / header (closed) */
 .chatbot-header {
   background: #1e88e5;
   color: white;
@@ -16,17 +17,18 @@
   cursor: pointer;
   font-weight: 500;
   box-shadow: 0 8px 20px rgba(30, 136, 229, 0.35);
-  display: flex;
+  display: inline-flex;   /* 🔑 IMPORTANT */
   align-items: center;
-  justify-content: space-between;
   gap: 10px;
-  width: auto;
+  white-space: nowrap;
 }
 
 /* Header when open */
 .chatbot-container.open .chatbot-header {
+  width: 360px;           /* 🔑 FIXED WIDTH */
   border-radius: 12px 12px 0 0;
-  width: 360px;
+  justify-content: space-between;
+  display: flex;
 }
 
 /* Close button */
@@ -34,16 +36,11 @@
   font-size: 18px;
   cursor: pointer;
   line-height: 1;
-  opacity: 0.9;
-}
-
-.chatbot-close:hover {
-  opacity: 1;
 }
 
 /* Chat body */
 .chatbot-body {
-  width: 360px;
+  width: 360px;           /* 🔑 FIXED WIDTH */
   height: 480px;
   background: white;
   border-radius: 0 0 12px 12px;
@@ -63,7 +60,7 @@
   flex-direction: column;
 }
 
-/* User message bubble */
+/* User bubble */
 .chatbot-messages .user {
   align-self: flex-end;
   background: #1e88e5;
@@ -73,10 +70,9 @@
   margin-bottom: 10px;
   max-width: 75%;
   font-size: 14px;
-  word-wrap: break-word;
 }
 
-/* Bot message bubble */
+/* Bot bubble */
 .chatbot-messages .bot {
   align-self: flex-start;
   background: #e3f2fd;
@@ -86,10 +82,9 @@
   margin-bottom: 10px;
   max-width: 75%;
   font-size: 14px;
-  word-wrap: break-word;
 }
 
-/* Input section */
+/* Input area */
 .chatbot-input {
   display: flex;
   padding: 10px;
@@ -106,11 +101,6 @@
   outline: none;
 }
 
-.chatbot-input input:focus {
-  border-color: #1e88e5;
-}
-
-/* Send button */
 .chatbot-input button {
   margin-left: 8px;
   background: #1e88e5;
@@ -119,10 +109,6 @@
   border-radius: 20px;
   padding: 8px 16px;
   cursor: pointer;
-}
-
-.chatbot-input button:hover {
-  background: #1565c0;
 }
 
 /* Scrollbar */

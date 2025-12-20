@@ -26,9 +26,19 @@ function Chatbot() {
 
   return (
     <div className={`chatbot-container ${open ? "open" : ""}`}>
-      <div className="chatbot-header" onClick={() => setOpen(!open)}>
-        🤖 Chat
+      <div className="chatbot-header">
+        <span onClick={() => setOpen(!open)}>🤖 Chat</span>
+
+        {open && (
+          <span
+            className="chatbot-close"
+            onClick={() => setOpen(false)}
+          >
+            ✕
+          </span>
+        )}
       </div>
+
 
       {open && (
         <div className="chatbot-body">
