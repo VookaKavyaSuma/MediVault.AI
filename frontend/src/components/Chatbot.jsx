@@ -6,22 +6,37 @@ function Chatbot() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
 
-  const sendMessage = () => {
+const sendMessage = async () => {
     if (!input.trim()) return;
 
+    // 1. Show User Message immediately
     const userMsg = { sender: "user", text: input };
-    setMessages([...messages, userMsg]);
+    setMessages((prev) => [...prev, userMsg]);
+    
+    const userText = input; // Save text before clearing
+    setInput(""); 
 
-    // Mock AI response
-    setTimeout(() => {
+    try {
+      // 2. Send to Backend
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: userText }),
+      });
+
+      const data = await response.json();
+
+      // 3. Show Bot Response
       const botMsg = {
         sender: "bot",
-        text: "This is a mock response. AI summary and medical guidance can appear here."
+        text: data.reply // This comes from your server.js logic!
       };
-      setMessages(prev => [...prev, botMsg]);
-    }, 800);
+      setMessages((prev) => [...prev, botMsg]);
 
-    setInput("");
+    } catch (error) {
+      const errorMsg = { sender: "bot", text: "⚠️ Error connecting to AI server." };
+      setMessages((prev) => [...prev, errorMsg]);
+    }
   };
 
   return (

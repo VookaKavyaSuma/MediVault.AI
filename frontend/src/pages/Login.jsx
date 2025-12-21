@@ -12,20 +12,35 @@ function Login() {
   const correctEmail = "admin@medivault.ai";
   const correctPassword = "admin123";
 
-  const handleLogin = (e) => {
+const handleLogin = async (e) => {
     e.preventDefault();
+    setError(""); // Clear previous errors
 
-    if (email === correctEmail && password === correctPassword) {
-      localStorage.setItem("isLoggedIn", "true");
-      localStorage.setItem("role", "doctor");
-      navigate("/home"); 
-    } else if (email === "patient@medivault.ai" && password === "patient123") {
+    try {
+      // 1. Call your new Backend API
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // 2. Save real data from server
         localStorage.setItem("isLoggedIn", "true");
-        localStorage.setItem("role", "patient");
-        localStorage.setItem("patientName", "Kavya Suma"); // store patient name
+        localStorage.setItem("role", data.role);
+        localStorage.setItem("patientName", data.name);
+        
+        // 3. Redirect
         navigate("/home");
-    } else {
-        setError("Invalid email or password");
+      } else {
+        // Show error from server (e.g., "Invalid Credentials")
+        setError(data.message);
+      }
+    } catch (err) {
+      console.error("Login Error:", err);
+      setError("Server error. Is the backend running?");
     }
   };
 

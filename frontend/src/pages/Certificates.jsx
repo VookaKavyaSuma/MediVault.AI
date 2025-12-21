@@ -6,43 +6,51 @@ function Certificates() {
   const role = localStorage.getItem("role");
   const [certificates, setCertificates] = useState([]);
 
+  // 1. Fetch Real Certificates from Backend
   useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem("certificates")) || [];
-    setCertificates(stored);
+    fetchCertificates();
   }, []);
 
-  const handleUpload = (e) => {
+  const fetchCertificates = async () => {
+    try {
+      const res = await fetch("/api/records");
+      const data = await res.json();
+      // In a real app, you might filter by type="Certificate"
+      // For now, we show all files as certificates for the demo
+      setCertificates(data);
+    } catch (error) {
+      console.error("Error fetching certificates:", error);
+    }
+  };
+
+  // 2. Handle Upload (For Doctors)
+  const handleUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const newCertificate = {
-      id: Date.now(),
-      title: file.name,
-      uploadedBy: "Dr. Ananya Rao",
-      issuedBy: "Apollo Hospitals",
-      dateIssued: new Date().toISOString().split("T")[0],
-      fileUrl: URL.createObjectURL(file),
-    };
+    const formData = new FormData();
+    formData.append("file", file);
 
-    const updated = [newCertificate, ...certificates];
-    setCertificates(updated);
-    localStorage.setItem("certificates", JSON.stringify(updated));
+    try {
+      alert("Issuing Certificate... Uploading to Secure Vault.");
 
-    // Trigger AI summary storage
-    const aiSummaries =
-      JSON.parse(localStorage.getItem("aiSummaries")) || [];
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
 
-    aiSummaries.unshift({
-      id: newCertificate.id,
-      certificateName: file.name,
-      analyzedOn: new Date().toLocaleDateString(),
-      history: [{ hospital: "Apollo Hospitals", visitDate: "Jan 2024" }],
-      tests: [{ name: "Blood Test", result: "Normal" }],
-      medicines: [{ name: "Vitamin D", dosage: "1000 IU" }],
-      diseases: [{ name: "Hypertension", status: "Under control" }],
-    });
+      const data = await res.json();
 
-    localStorage.setItem("aiSummaries", JSON.stringify(aiSummaries));
+      if (data.success) {
+        alert("✅ Certificate Issued Successfully!");
+        fetchCertificates(); // Refresh the list
+      } else {
+        alert("Upload failed.");
+      }
+    } catch (error) {
+      console.error("Error uploading:", error);
+      alert("Server Error.");
+    }
   };
 
   return (
@@ -50,36 +58,34 @@ function Certificates() {
       <Navbar />
 
       <div className="certificates-content">
-        <h1>Certificates</h1>
+        <h1>Medical Certificates</h1>
 
-        {/* Doctor-only Upload */}
+        {/* Doctor-only Upload Button */}
         {role === "doctor" && (
           <label className="upload-btn">
-            Upload Certificate
+            + Issue New Certificate
             <input type="file" hidden onChange={handleUpload} />
           </label>
         )}
 
         {certificates.length === 0 ? (
-          <p>No certificates available.</p>
+          <p>No certificates found.</p>
         ) : (
           <table className="certificates-table">
             <thead>
               <tr>
-                <th>Certificate</th>
-                <th>Uploaded By</th>
-                <th>Hospital</th>
-                <th>Date</th>
+                <th>Certificate Name</th>
+                <th>Issued By</th>
+                <th>Date Issued</th>
                 <th>Action</th>
               </tr>
             </thead>
             <tbody>
               {certificates.map((cert) => (
-                <tr key={cert.id}>
-                  <td>{cert.title}</td>
-                  <td>{cert.uploadedBy}</td>
-                  <td>{cert.issuedBy}</td>
-                  <td>{cert.dateIssued}</td>
+                <tr key={cert._id}>
+                  <td>{cert.fileName}</td>
+                  <td>Dr. Ananya Rao</td> {/* Hardcoded for MVP */}
+                  <td>{new Date(cert.uploadDate).toLocaleDateString()}</td>
                   <td>
                     <a
                       href={cert.fileUrl}
@@ -89,6 +95,7 @@ function Certificates() {
                     >
                       View
                     </a>
+                    {/* For download, we point to the same URL */}
                     <a
                       href={cert.fileUrl}
                       download

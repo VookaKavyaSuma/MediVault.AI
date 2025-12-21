@@ -1,61 +1,61 @@
 import Navbar from "../components/Navbar";
 import "./../styles/Notifications.css";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 function Notifications() {
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      title: "Medical Record Uploaded",
-      message: "Your blood test report was added successfully.",
-      time: "2 hours ago",
-      read: false,
-    },
-    {
-      id: 2,
-      title: "AI Summary Ready",
-      message: "Your medical report summary has been generated.",
-      time: "Yesterday",
-      read: true,
-    },
-    {
-      id: 3,
-      title: "QR Access Expiring",
-      message: "Your shared QR access will expire in 5 minutes.",
-      time: "Just now",
-      read: false,
-    },
-  ]);
+  const [notifications, setNotifications] = useState([]);
 
-  const markAsRead = (id) => {
-    setNotifications((prev) =>
-      prev.map((n) =>
-        n.id === id ? { ...n, read: true } : n
-      )
-    );
+  // 1. Fetch Real Notifications
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
+
+  const fetchNotifications = async () => {
+    try {
+      const res = await fetch("/api/notifications");
+      const data = await res.json();
+      setNotifications(data);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    }
+  };
+
+  // 2. Mark as Read
+  const markAsRead = async (id) => {
+    try {
+      await fetch(`/api/notifications/${id}`, { method: "PUT" });
+      
+      // Update UI instantly
+      setNotifications((prev) =>
+        prev.map((n) => (n._id === id ? { ...n, read: true } : n))
+      );
+    } catch (error) {
+      console.error("Error marking read:", error);
+    }
   };
 
   return (
     <div className="notifications-page">
       <Navbar />
-
       <div className="notifications-container">
         <h1>Notifications</h1>
 
         {notifications.length === 0 ? (
-          <p className="empty">No notifications</p>
+          <p className="empty">No new notifications</p>
         ) : (
           notifications.map((n) => (
             <div
-              key={n.id}
+              key={n._id}
               className={`notification-card ${n.read ? "read" : "unread"}`}
-              onClick={() => markAsRead(n.id)}
+              onClick={() => markAsRead(n._id)}
             >
               <div className="notification-text">
                 <h4>{n.title}</h4>
                 <p>{n.message}</p>
               </div>
-              <span className="time">{n.time}</span>
+              <span className="time">
+                {new Date(n.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </span>
             </div>
           ))
         )}
