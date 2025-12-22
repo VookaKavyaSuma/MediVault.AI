@@ -6,6 +6,10 @@ const multer = require('multer');
 const path = require('path');
 const OpenAI = require('openai');
 const Notification = require('./models/Notification');
+const bcrypt = require('bcryptjs');
+const User = require('./models/User'); 
+const SharedLink = require('./models/SharedLink');
+const crypto = require('crypto'); // Built-in Node module for random strings
 
 const app = express();
 // 🔧 FIX 1: CHANGE PORT TO 5001 (Bypasses Mac AirPlay)
@@ -34,18 +38,69 @@ const Record = require('./models/Record');
 
 // --- ROUTES ---
 
-// 1. LOGIN API
-app.post('/api/login', async (req, res) => {
-  const { email, password } = req.body;
-  
-  if (email === "admin@medivault.ai" && password === "admin123") {
-    return res.json({ success: true, role: "doctor", name: "Dr. Ananya" });
-  } 
-  if (email === "patient@medivault.ai" && password === "patient123") {
-    return res.json({ success: true, role: "patient", name: "Kavya Suma" });
-  }
+// --- AUTH ROUTES ---
 
-  res.status(401).json({ success: false, message: "Invalid Credentials" });
+// 1. SIGN UP API (Create New User)
+app.post('/api/signup', async (req, res) => {
+  try {
+    const { name, email, password, role } = req.body;
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ success: false, message: "Email already exists." });
+    }
+
+    // Hash the password (Encrypt it)
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Create new user
+    const newUser = new User({
+      name,
+      email,
+      password: hashedPassword,
+      role: role || "patient" // Default to patient if not specified
+    });
+
+    await newUser.save();
+    res.json({ success: true, message: "Account created! Please login." });
+
+  } catch (error) {
+    console.error("Signup Error:", error);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+});
+
+// 2. LOGIN API (Verify User)
+app.post('/api/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Find user by email
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ success: false, message: "User not found." });
+    }
+
+    // Verify password (Compare plain text with hash)
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ success: false, message: "Invalid Credentials." });
+    }
+
+    // Success! Send back user info
+    res.json({ 
+      success: true, 
+      role: user.role, 
+      name: user.name,
+      email: user.email 
+    });
+
+  } catch (error) {
+    console.error("Login Error:", error);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
 });
 
 // 2. CHATBOT API
@@ -136,6 +191,82 @@ app.delete('/api/records/:id', async (req, res) => {
   } catch (error) {
     console.error("Delete Error:", error);
     res.status(500).json({ success: false, message: "Server Error" });
+  }
+});
+
+// 8. GET ALL PATIENTS (Doctor Only)
+app.get('/api/patients', async (req, res) => {
+  try {
+    // Find all users where role is 'patient'
+    // .select('-password') means "Don't send the password back!"
+    const patients = await User.find({ role: 'patient' }).select('-password');
+    res.json(patients);
+  } catch (error) {
+    console.error("Error fetching patients:", error);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+});
+
+// 9. SHARE ACCESS API (Generate QR Token)
+app.post('/api/share', async (req, res) => {
+  try {
+    const { patientEmail } = req.body;
+    
+    // Find the patient to get their ID and Name
+    const patient = await User.findOne({ email: patientEmail });
+    if (!patient) return res.status(404).json({ success: false, message: "Patient not found" });
+
+    // Generate a secure random token
+    const token = crypto.randomBytes(16).toString('hex');
+    
+    // Set expiry (e.g., 15 minutes from now)
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+    const newLink = new SharedLink({
+      token,
+      patientId: patient._id,
+      patientName: patient.name,
+      expiresAt
+    });
+
+    await newLink.save();
+    res.json({ success: true, token, expiresAt });
+
+  } catch (error) {
+    console.error("Share Error:", error);
+    res.status(500).json({ success: false });
+  }
+});
+
+// 10. ACCESS SHARED RECORDS (Public Access with Token)
+app.get('/api/share/:token', async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    // 1. Find the link
+    const link = await SharedLink.findOne({ token });
+    
+    // 2. Validate it
+    if (!link) {
+      return res.status(404).json({ success: false, message: "Invalid Link" });
+    }
+    if (new Date() > link.expiresAt) {
+      return res.status(403).json({ success: false, message: "Link Expired" });
+    }
+
+    // 3. Fetch the patient's records
+    // (In a real app, we would filter by patientId. For demo, we return all records)
+    const records = await Record.find().sort({ uploadDate: -1 });
+
+    res.json({ 
+      success: true, 
+      patientName: link.patientName, 
+      records 
+    });
+
+  } catch (error) {
+    console.error("Shared Access Error:", error);
+    res.status(500).json({ success: false });
   }
 });
 

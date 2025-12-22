@@ -15,25 +15,33 @@ function Home() {
 
   const navigate = useNavigate();
 
-  const generateQR = () => {
-    const token = Math.random().toString(36).substring(2);
-    const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
-
-    const qrData = {
-      token,
-      patientName,
-      expiresAt
-    };
-
-    localStorage.setItem("qrAccess", JSON.stringify(qrData));
-    
-    setQrToken(token);
-    setExpiryTime(expiresAt);
-    setShowQR(true);
+const generateQR = async () => {
+    // Get current logged-in user email
+    const email = localStorage.getItem("email"); // Gets your real logged-in email    
+    try {
+      const res = await fetch("/api/share", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ patientEmail: email }),
+      });
+      
+      const data = await res.json();
+      
+      if (data.success) {
+        setQrToken(data.token);
+        setExpiryTime(data.expiresAt);
+        setShowQR(true);
+      } else {
+        alert("Failed to generate QR code");
+      }
+    } catch (error) {
+      console.error("QR Error:", error);
+    }
   };
 
+  // Update the QR Value to point to your new page
   const qrValue = qrToken
-    ? `https://medivault.ai/share?token=${qrToken}`
+    ? `${window.location.origin}/shared/${qrToken}` 
     : "";
 
   return (

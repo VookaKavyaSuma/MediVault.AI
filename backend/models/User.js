@@ -1,10 +1,11 @@
 const mongoose = require('mongoose');
 
 const UserSchema = new mongoose.Schema({
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true }, // In real app, hash this!
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true }, // unique ensures no duplicate emails
+  password: { type: String, required: true }, // This will be hashed!
   role: { type: String, enum: ['doctor', 'patient'], default: 'patient' },
-  name: String
+  dateJoined: { type: Date, default: Date.now }
 });
 
 module.exports = mongoose.model('User', UserSchema);

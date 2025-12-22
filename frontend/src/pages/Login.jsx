@@ -31,6 +31,7 @@ const handleLogin = async (e) => {
         localStorage.setItem("isLoggedIn", "true");
         localStorage.setItem("role", data.role);
         localStorage.setItem("patientName", data.name);
+        localStorage.setItem("email", data.email);
         
         // 3. Redirect
         navigate("/home");
@@ -73,7 +74,8 @@ const handleLogin = async (e) => {
         </form>
 
         <p className="footer-text">
-          Don’t have an account? <span>Sign up</span>
+          Don’t have an account? 
+          <span onClick={() => navigate("/signup")}>Sign up</span>
         </p>
       </div>
     </div>
