@@ -6,12 +6,13 @@ function AISummary() {
   const patientName = localStorage.getItem("patientName") || "Patient";
   const [summaries, setSummaries] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showDebug, setShowDebug] = useState(false); // Toggle for raw data
 
   // 1. Fetch Real AI Data from Backend
   useEffect(() => {
     const fetchSummaries = async () => {
       try {
-        const res = await fetch("/api/records"); // Re-using the get-all-records API
+        const res = await fetch("/api/records");
         const data = await res.json();
         
         // Filter only records that have an AI Summary generated
@@ -27,20 +28,32 @@ function AISummary() {
     fetchSummaries();
   }, []);
 
+  // Helper to check if a section has data
+  const hasData = (list) => list && list.length > 0;
+
   return (
     <div className="ai-page">
       <Navbar />
 
       <div className="ai-wrapper">
-        <h1>AI Health Summary</h1>
-        <p className="ai-desc">
-          Hello <span style={{color: "#1e88e5", fontWeight: "bold"}}>{patientName}</span>, 
-          here is the AI analysis of your uploaded medical records.
-        </p>
+        <div style={{display: "flex", justifyContent: "space-between", alignItems: "center"}}>
+          <div>
+            <h1>AI Health Summary</h1>
+            <p className="ai-desc">
+              Hello <span style={{color: "#1e88e5", fontWeight: "bold"}}>{patientName}</span>, 
+              here is the AI analysis of your uploaded medical records.
+            </p>
+          </div>
+          <button 
+            onClick={() => setShowDebug(!showDebug)} 
+            style={{fontSize: "12px", padding: "5px 10px", background: "#ddd", border: "none", borderRadius: "4px", cursor: "pointer"}}
+          >
+            {showDebug ? "Hide Debug" : "Show Raw Data 🛠️"}
+          </button>
+        </div>
 
         {loading ? (
-          // SPINNER UI for Loading State
-          <div className="spinner-container" style={{textAlign: "center", padding: "50px"}}>
+           <div className="spinner-container" style={{textAlign: "center", padding: "50px"}}>
              <div className="spinner" style={{margin: "0 auto"}}></div>
              <p style={{marginTop: "20px", color: "#666"}}>Fetching AI Insights...</p>
           </div>
@@ -61,8 +74,15 @@ function AISummary() {
                 </span>
               </div>
 
+              {/* DEBUG VIEW - Shows exactly what the AI returned */}
+              {showDebug && (
+                <pre style={{background: "#333", color: "#0f0", padding: "15px", borderRadius: "8px", overflowX: "auto", fontSize: "12px"}}>
+                  {JSON.stringify(record.aiSummary, null, 2)}
+                </pre>
+              )}
+
               {/* 1. Hospital Visits */}
-              {record.aiSummary.hospitalVisits && record.aiSummary.hospitalVisits.length > 0 && (
+              {hasData(record.aiSummary.hospitalVisits) ? (
                 <Section title="🏥 Hospital Visits">
                   {record.aiSummary.hospitalVisits.map((h, i) => (
                     <Item key={i}>
@@ -70,21 +90,29 @@ function AISummary() {
                     </Item>
                   ))}
                 </Section>
+              ) : (
+                // Only show "Not Found" if NOT in debug mode, to keep UI clean
+                showDebug && <p style={{color: "#999", fontStyle: "italic", marginLeft: "20px"}}>No hospital visits found.</p>
               )}
 
               {/* 2. Tests */}
-              {record.aiSummary.tests && record.aiSummary.tests.length > 0 && (
+              {hasData(record.aiSummary.tests) ? (
                 <Section title="🧪 Tests Conducted">
                   {record.aiSummary.tests.map((t, i) => (
                     <Item key={i}>
-                      <b>{t.name}</b>: {t.result}
+                      <b>{t.name}</b>: <span style={{color: "#1e88e5", fontWeight: "bold"}}>{t.result}</span>
                     </Item>
                   ))}
                 </Section>
+              ) : (
+                <div style={{padding: "10px 20px", color: "#666"}}>
+                    {/* Fallback if list is empty */}
+                   {/* <i>No specific test results extracted.</i> */}
+                </div>
               )}
 
               {/* 3. Medicines */}
-              {record.aiSummary.medicines && record.aiSummary.medicines.length > 0 && (
+              {hasData(record.aiSummary.medicines) && (
                 <Section title="💊 Medicines Prescribed">
                   {record.aiSummary.medicines.map((m, i) => (
                     <Item key={i}>
@@ -95,15 +123,29 @@ function AISummary() {
               )}
 
               {/* 4. Diseases/Conditions */}
-              {record.aiSummary.diseases && record.aiSummary.diseases.length > 0 && (
+              {hasData(record.aiSummary.diseases) && (
                 <Section title="🦠 Conditions Detected">
                   {record.aiSummary.diseases.map((d, i) => (
                     <Item key={i}>
-                      <b>{d.name}</b> — <span style={{color: "green"}}>{d.status || "Detected"}</span>
+                      <b>{d.name}</b> — <span style={{color: d.status.toLowerCase().includes("rule") ? "green" : "red"}}>
+                        {d.status || "Detected"}
+                      </span>
                     </Item>
                   ))}
                 </Section>
               )}
+              
+              {/* FINAL FALLBACK: If absolutely nothing was found */}
+              {!hasData(record.aiSummary.hospitalVisits) && 
+               !hasData(record.aiSummary.tests) && 
+               !hasData(record.aiSummary.medicines) && 
+               !hasData(record.aiSummary.diseases) && !showDebug && (
+                 <div style={{padding: "20px", textAlign: "center", color: "#888"}}>
+                   <p>The AI read this document but couldn't identify specific medical data points.</p>
+                   <p style={{fontSize: "12px"}}>Try uploading a clearer PDF or a different report format.</p>
+                 </div>
+               )}
+
             </div>
           ))
         )}

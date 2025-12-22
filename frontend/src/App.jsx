@@ -10,6 +10,7 @@ import Notifications from "./pages/Notifications";
 import Signup from "./pages/Signup";
 import Patients from "./pages/Patients";
 import SharedRecords from "./pages/SharedRecords";
+import AITools from "./pages/AITools";
 
 function App() {
   return (
@@ -47,6 +48,13 @@ function App() {
           </ProtectedRoute>
         }
         />
+        <Route path="/ai-tools" 
+  element={
+    <ProtectedRoute>
+      <AITools />
+    </ProtectedRoute>
+  } 
+/>
         <Route path="/notifications" 
         element={
           <ProtectedRoute>

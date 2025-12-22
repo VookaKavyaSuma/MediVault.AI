@@ -40,6 +40,7 @@ const generateQR = async () => {
   };
 
   // Update the QR Value to point to your new page
+// Uses the current browser URL (e.g., http://192.168.1.5:5173)
   const qrValue = qrToken
     ? `${window.location.origin}/shared/${qrToken}` 
     : "";
@@ -87,19 +88,25 @@ const generateQR = async () => {
         )}
       </div>
 
-      {/* QR Modal */}
+{/* QR Modal */}
       {showQR && (
         <div className="qr-modal-overlay">
           <div className="qr-modal">
             <h3>Scan to View Records</h3>
+            
+            {/* Display QR Code */}
             {qrValue && <QRCodeSVG value={qrValue} size={180} />}
-            {expiryTime && (
-            <p className="qr-note">
-              Valid until: {" "} 
-              {new Date(expiryTime).toLocaleTimeString()} • Read-only access
+            
+            <p className="qr-note" style={{color: "green", fontWeight: "bold", marginTop: "15px"}}>
+              ✅ Permanent Access Link
             </p>
-            )}
-            <button onClick={() => setShowQR(false)}>Close</button>
+            <p style={{fontSize: "12px", color: "#666"}}>
+              Anyone with this code can view your records anytime.
+            </p>
+
+            <button onClick={() => setShowQR(false)} style={{marginTop: "10px"}}>
+              Close
+            </button>
           </div>
         </div>
       )}

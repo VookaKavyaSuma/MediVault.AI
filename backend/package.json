@@ -10,12 +10,19 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@langchain/core": "^1.1.7",
+    "@langchain/groq": "^1.0.2",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
+    "fs": "^0.0.1-security",
+    "groq-sdk": "^0.37.0",
     "mongoose": "^9.0.2",
     "multer": "^2.0.2",
-    "openai": "^6.15.0"
+    "openai": "^6.15.0",
+    "pdf-extraction": "^1.0.2",
+    "tesseract.js": "^7.0.0"
   }
 }

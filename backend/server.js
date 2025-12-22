@@ -10,6 +10,7 @@ const bcrypt = require('bcryptjs');
 const User = require('./models/User'); 
 const SharedLink = require('./models/SharedLink');
 const crypto = require('crypto'); // Built-in Node module for random strings
+const { analyzeMedicalReport } = require('./utils/aiHandler');
 
 const app = express();
 // 🔧 FIX 1: CHANGE PORT TO 5001 (Bypasses Mac AirPlay)
@@ -128,32 +129,60 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
+// 3. UPLOAD RECORDS API (With Real AI 🧠)
 app.post('/api/upload', upload.single('file'), async (req, res) => {
   if (!req.file) return res.status(400).send('No file uploaded.');
 
-  // 1. Save Record
-  const newRecord = new Record({
-    patientName: "Kavya Suma",
-    fileName: req.file.originalname,
-    fileUrl: `http://localhost:${PORT}/uploads/${req.file.filename}`,
-    fileType: req.file.mimetype.includes("pdf") ? "PDF" : "Image",
-    aiSummary: {
-      hospitalVisits: [{ hospital: "Apollo Hospitals", date: "2024-12-20" }],
-      tests: [{ name: "Complete Blood Count", result: "Normal" }],
-      medicines: [{ name: "Dolo 650", dosage: "Twice a day" }]
+  try {
+    // 1. Run Real AI Analysis
+    console.log("🤖 AI is analyzing:", req.file.originalname);
+    
+    // Default fallback in case AI fails or file is an image without OCR
+    let aiResult = {
+      hospitalVisits: [],
+      tests: [],
+      medicines: [],
+      diseases: []
+    };
+
+    const realAnalysis = await analyzeMedicalReport(req.file.path, req.file.mimetype);
+    
+    if (realAnalysis) {
+      aiResult = realAnalysis; // Use the real data!
+      console.log("✅ AI Analysis Complete!");
+    } else {
+      console.log("⚠️ AI skipped (Image or Error), using defaults.");
     }
-  });
-  await newRecord.save();
 
-  // 2. 🔔 CREATE NOTIFICATION (New Code)
-  const newNotif = new Notification({
-    title: "New Record Analyzed",
-    message: `Your file '${req.file.originalname}' has been processed by AI.`,
-    type: "success"
-  });
-  await newNotif.save();
+    // 2. Save to Database
+    const newRecord = new Record({
+      patientName: "Kavya Suma", // You can fetch this from User ID in a real app
+      fileName: req.file.originalname,
+      fileUrl: `http://localhost:${PORT}/uploads/${req.file.filename}`,
+      fileType: req.file.mimetype.includes("pdf") ? "PDF" : "Image",
+      uploadDate: new Date(),
+      aiSummary: aiResult // <--- SAVING REAL DATA HERE
+    });
 
-  res.json({ success: true, record: newRecord });
+    await newRecord.save();
+
+    // 3. Send Notification
+    // (If you implemented the Notification model earlier)
+    const Notification = require('./models/Notification'); // Ensure this is imported at top if used
+    if (Notification) {
+      await new Notification({
+        title: "AI Analysis Complete",
+        message: `Analysis for ${req.file.originalname} is ready.`,
+        type: "success"
+      }).save();
+    }
+
+    res.json({ success: true, record: newRecord });
+
+  } catch (error) {
+    console.error("Upload Error:", error);
+    res.status(500).json({ success: false, message: "Server Error during upload" });
+  }
 });
 
 // 4. GET ALL RECORDS
@@ -268,6 +297,41 @@ app.get('/api/share/:token', async (req, res) => {
     console.error("Shared Access Error:", error);
     res.status(500).json({ success: false });
   }
+});
+
+// 11. DOCTOR AI TOOLS API
+app.post('/api/ai-predict', (req, res) => {
+  const { type, input } = req.body;
+  let result = {};
+
+  // Tool 1: Disease Risk Predictor
+  if (type === "symptoms") {
+    const symptoms = input.toLowerCase();
+    if (symptoms.includes("chest") && symptoms.includes("pain")) {
+      result = { risk: "High", condition: "Possible Angina or Cardiac Issue", score: 85 };
+    } else if (symptoms.includes("headache") && symptoms.includes("fever")) {
+      result = { risk: "Moderate", condition: "Viral Infection / Migraine", score: 45 };
+    } else {
+      result = { risk: "Low", condition: "General Fatigue or Minor Infection", score: 15 };
+    }
+  } 
+  
+  // Tool 2: Drug Interaction Checker
+  else if (type === "drugs") {
+    const drugs = input.toLowerCase(); // e.g., "aspirin, ibuprofen"
+    if (drugs.includes("aspirin") && drugs.includes("ibuprofen")) {
+      result = { status: "⚠️ Unsafe", message: "Risk of stomach bleeding and reduced aspirin effect." };
+    } else if (drugs.includes("paracetamol") && drugs.includes("alcohol")) {
+      result = { status: "❌ Dangerous", message: "High risk of liver damage." };
+    } else {
+      result = { status: "✅ Safe", message: "No known major interactions found." };
+    }
+  }
+
+  // Simulate AI "Thinking" delay
+  setTimeout(() => {
+    res.json({ success: true, data: result });
+  }, 1500);
 });
 
 // Start Server
