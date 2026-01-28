@@ -1,30 +1,33 @@
 import Navbar from "../components/Navbar";
 import "./../styles/Notifications.css";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 function Notifications() {
   const [notifications, setNotifications] = useState([]);
 
-  // 1. Fetch Real Notifications
-  useEffect(() => {
-    fetchNotifications();
-  }, []);
+  const fetchNotifications = useCallback(async () => {
+    const userEmail = localStorage.getItem("email"); // 🆕
+    if (!userEmail) return;
 
-  const fetchNotifications = async () => {
     try {
-      const res = await fetch("/api/notifications");
+      const res = await fetch(`/api/notifications?email=${userEmail}`);
       const data = await res.json();
       setNotifications(data);
     } catch (error) {
       console.error("Error fetching notifications:", error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchNotifications();
+  }, [fetchNotifications]);
 
   // 2. Mark as Read
   const markAsRead = async (id) => {
     try {
       await fetch(`/api/notifications/${id}`, { method: "PUT" });
-      
+
       // Update UI instantly
       setNotifications((prev) =>
         prev.map((n) => (n._id === id ? { ...n, read: true } : n))

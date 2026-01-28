@@ -1,95 +1,116 @@
+/* Certificates.css - Glassmorphism Edition */
+
 .certificates-container {
-  padding-top: 70px; /* space for navbar */
+  /* padding-top: 80px; Removed to fix gap */
   min-height: 100vh;
-  background-color: #f8fbff;
+  /* Transparent to show body gradient */
+  background: transparent;
 }
 
 .certificates-content {
-  max-width: 900px;
+  max-width: 1000px;
   margin: 0 auto;
   padding: 20px;
 }
 
 .certificates-content h1 {
-  color: #1e88e5;
-  margin-bottom: 20px;
+  color: white;
+  margin-bottom: 30px;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
+/* Glass Table */
 .certificates-table {
   width: 100%;
-  border-collapse: collapse;
-  background: #fff;
-  box-shadow: 0 4px 10px rgba(30, 136, 229, 0.1);
+  border-collapse: separate;
+  border-spacing: 0;
+
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  border-radius: 16px;
+  overflow: hidden;
+  color: white;
 }
 
 .certificates-table th,
 .certificates-table td {
-  padding: 12px 16px;
+  padding: 16px 24px;
   text-align: left;
-  border-bottom: 1px solid #ddd;
-  color: #1e88e5;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .certificates-table th {
-  background: #e3f2fd;
-  color: #1e88e5;
+  background: rgba(255, 255, 255, 0.05);
+  color: #93c5fd;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
 }
 
+.certificates-table tr:last-child td {
+  border-bottom: none;
+}
+
+.certificates-table tr:hover td {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Buttons */
 .view-btn,
 .download-btn {
   margin-right: 10px;
-  padding: 6px 12px;
-  border-radius: 6px;
+  padding: 6px 14px;
+  border-radius: 8px;
   text-decoration: none;
   font-weight: 500;
-  font-size: 14px;
+  font-size: 13px;
+  display: inline-block;
+  transition: all 0.2s;
+  border: 1px solid transparent;
 }
 
 .view-btn {
-  background: #1e88e5;
-  color: #fff;
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+  border-color: rgba(59, 130, 246, 0.3);
 }
 
 .download-btn {
-  background: #43a047;
-  color: #fff;
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border-color: rgba(16, 185, 129, 0.3);
 }
 
 .view-btn:hover {
-  background: white;
+  background: rgba(59, 130, 246, 0.4);
+  color: white;
 }
 
 .download-btn:hover {
-  background: white;
+  background: rgba(16, 185, 129, 0.4);
+  color: white;
 }
 
+/* Upload Button */
 .upload-btn {
   display: inline-block;
-  margin-bottom: 20px;
-  padding: 10px 18px;
-  background: #1e88e5;
+  margin-bottom: 25px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
   color: white;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
-  transition: 0.3s;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+  transition: all 0.2s;
 }
 
 .upload-btn:hover {
-  background: #1565c0;
-}
-
-.view-btn,
-.download-btn {
-  margin-right: 10px;
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.view-btn {
-  color: white;
-}
-
-.download-btn {
-  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
 }

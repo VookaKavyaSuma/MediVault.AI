@@ -1,4 +1,4 @@
-import { useState, useEffect  } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./../styles/Navbar.css";
 
@@ -7,10 +7,10 @@ function Navbar() {
   const navigate = useNavigate();
 
   const role = localStorage.getItem("role"); // doctor | patient
-  
+
   const handleLogout = () => {
     localStorage.removeItem("isLoggedIn");
-    localStorage.removeItem("role"); 
+    localStorage.removeItem("role");
     localStorage.removeItem("patientName");
     setOpen(false);
     navigate("/");
@@ -49,45 +49,43 @@ function Navbar() {
             <>
               <li onClick={() => handleNavigation("/home")}>Doctor Dashboard</li>
               <li onClick={() => handleNavigation("/patients")}>Patients</li>
-              <li onClick={() => handleNavigation("/certificates")}>Certificates</li>
+              <li onClick={() => handleNavigation("/documents?tab=certificates")}>Documents</li>
               <li onClick={() => handleNavigation("/ai-tools")}>AI Tools</li>
             </>
           )}
           {role === "patient" && (
             <>
               <li onClick={() => handleNavigation("/home")}>Dashboard</li>
-              <li onClick={() => handleNavigation("/records")}>My Records</li>
-              <li onClick={() => handleNavigation("/certificates")}>Certificates</li>
+              <li onClick={() => handleNavigation("/documents?tab=records")}>Documents</li>
               <li onClick={() => handleNavigation("/ai-summary")}>AI Summary</li>
             </>
           )}
-          <li onClick={handleLogout}>Logout</li>
+          <li className="logout-btn" onClick={handleLogout}>Logout</li>
         </ul>
       </nav>
 
       {/* Mobile Menu */}
-    <div className={`mobile-menu ${open ? "open" : ""}`}>
+      <div className={`mobile-menu ${open ? "open" : ""}`}>
 
-      {role === "doctor" && (
-        <>
-          <p onClick={() => { navigate("/home"); setOpen(false); }}>Doctor Dashboard</p>
-          <p onClick={() => { navigate("/patients"); setOpen(false); }}>Patients</p>
-          <p onClick={() => { navigate("/certificates"); setOpen(false); }}>Certificates</p>
-          <p onClick={() => { navigate("/ai-tools"); setOpen(false); }}>AI Tools</p>
-        </>
-      )}
+        {role === "doctor" && (
+          <>
+            <p onClick={() => { navigate("/home"); setOpen(false); }}>Doctor Dashboard</p>
+            <p onClick={() => { navigate("/patients"); setOpen(false); }}>Patients</p>
+            <p onClick={() => { navigate("/documents?tab=certificates"); setOpen(false); }}>Documents</p>
+            <p onClick={() => { navigate("/ai-tools"); setOpen(false); }}>AI Tools</p>
+          </>
+        )}
 
-      {role === "patient" && (
-        <>
-          <p onClick={() => { navigate("/home"); setOpen(false); }}>My Dashboard</p>
-          <p onClick={() => { navigate("/records"); setOpen(false); }}>My Records</p>
-          <p onClick={() => { navigate("/certificates"); setOpen(false); }}>Certificates</p>
-          <p onClick={() => { navigate("/ai-summary"); setOpen(false); }}>AI Summary</p>
-        </>
-      )}
+        {role === "patient" && (
+          <>
+            <p onClick={() => { navigate("/home"); setOpen(false); }}>My Dashboard</p>
+            <p onClick={() => { navigate("/documents?tab=records"); setOpen(false); }}>Documents</p>
+            <p onClick={() => { navigate("/ai-summary"); setOpen(false); }}>AI Summary</p>
+          </>
+        )}
 
-      <p className="logout" onClick={handleLogout}>Logout</p>
-    </div>
+        <p className="logout" onClick={handleLogout}>Logout</p>
+      </div>
 
     </>
   );

@@ -1,7 +1,10 @@
+/* Notifications.css - Glassmorphism Edition */
+
 .notifications-page {
-  padding-top: 80px;
+  /* padding-top: 80px; Removed to fix gap */
   min-height: 100vh;
-  background: #f8fbff;
+  /* Transparent to show body gradient */
+  background: transparent;
 }
 
 .notifications-container {
@@ -11,55 +14,77 @@
 }
 
 .notifications-container h1 {
-  color: #1e88e5;
-  margin-bottom: 20px;
+  color: white;
+  margin-bottom: 30px;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
 .notification-card {
-  background: white;
-  border-radius: 10px;
-  padding: 14px 16px;
-  margin-bottom: 12px;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+  /* Glass Card */
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 15px;
   cursor: pointer;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  transition: transform 0.15s ease;
+  transition: all 0.2s ease;
+  color: white;
+  position: relative;
+  overflow: hidden;
 }
 
 .notification-card:hover {
-  transform: scale(1.01);
+  transform: translateX(5px);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
-.notification-card.unread {
-  border-left: 4px solid #1e88e5;
+/* Unread Indicator */
+.notification-card.unread::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: #3b82f6;
 }
 
 .notification-card.read {
   opacity: 0.6;
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .notification-text h4 {
   margin: 0;
-  color: #333;
-  font-size: 15px;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
 }
 
 .notification-text p {
-  margin: 4px 0 0;
-  font-size: 13px;
-  color: #666;
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .time {
   font-size: 12px;
-  color: #888;
+  color: rgba(255, 255, 255, 0.4);
   white-space: nowrap;
+  margin-left: 15px;
 }
 
 .empty {
-  color: #777;
+  color: rgba(255, 255, 255, 0.5);
   text-align: center;
-  margin-top: 40px;
+  margin-top: 50px;
+  font-style: italic;
 }

@@ -1,75 +1,163 @@
-* {
-  box-sizing: border-box;
-  width: 100%;
-}
+/* Login.css - Glassmorphism Edition */
 
 .login-container {
   height: 100vh;
   width: 100vw;
-  background: linear-gradient(135deg, #eaf4ff, #ffffff);
   display: flex;
   justify-content: center;
   align-items: center;
+
+  /* Deep Animated Gradient - Managed globally by body, but ensured here */
+  background: transparent;
 }
 
+/* Glass Card */
 .login-card {
-  background: white;
-  width: 350px;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0, 120, 255, 0.15);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+
+  width: 100%;
+  max-width: 400px;
+  padding: 40px;
+  border-radius: 20px;
   text-align: center;
+  color: white;
+  transition: transform 0.3s ease;
 }
 
+.login-card:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+/* Typography */
 .title {
-  color: #1e88e5;
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  /* Gradient Text */
+  background: linear-gradient(90deg, #4ade80, #3b82f6);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
   margin-bottom: 5px;
 }
 
 .subtitle {
-  color: #666;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.6);
   font-size: 14px;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
 }
 
+/* Form Elements */
 .input {
   width: 100%;
-  padding: 10px;
+  padding: 12px 15px;
   margin-bottom: 15px;
-  border-radius: 8px;
-  border: 1px solid #cce0ff;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.2);
+  color: white;
+  font-size: 16px;
   outline: none;
-  background-color: whitesmoke;
-  color: black;
+  transition: all 0.2s ease;
+}
+
+.input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .input:focus {
-  border-color: #1e88e5;
+  background: rgba(0, 0, 0, 0.3);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
 }
 
+/* Button */
 .login-btn {
   width: 100%;
-  padding: 10px;
-  background: #1e88e5;
+  padding: 12px;
   border: none;
-  color: white;
-  border-radius: 8px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  margin-top: 10px;
   cursor: pointer;
-  font-weight: bold;
+
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+  transition: all 0.2s ease;
 }
 
 .login-btn:hover {
-  background: #1565c0;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
 }
 
+.login-btn:active {
+  transform: scale(0.98);
+}
+
+/* Footer Link */
 .footer-text {
-  margin-top: 15px;
-  font-size: 13px;
-  color: #555;
+  margin-top: 20px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .footer-text span {
-  color: #1e88e5;
+  color: #3b82f6;
+  font-weight: 600;
   cursor: pointer;
-  font-weight: 500;
+  margin-left: 5px;
+}
+
+.footer-text span:hover {
+  text-decoration: underline;
+  color: #60a5fa;
+}
+
+/* Animations */
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+/* Add a floating shape to the background via pseudo element on container for flare */
+.login-container::before {
+  content: '';
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.3) 0%, rgba(0, 0, 0, 0) 70%);
+  top: 10%;
+  left: 20%;
+  z-index: -1;
+  animation: float 6s ease-in-out infinite;
+}
+
+.login-container::after {
+  content: '';
+  position: absolute;
+  width: 250px;
+  height: 250px;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.2) 0%, rgba(0, 0, 0, 0) 70%);
+  bottom: 10%;
+  right: 20%;
+  z-index: -1;
+  animation: float 8s ease-in-out infinite reverse;
 }

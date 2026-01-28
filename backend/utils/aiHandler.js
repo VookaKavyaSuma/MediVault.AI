@@ -1,4 +1,5 @@
 const fs = require("fs");
+const path = require("path");
 const pdf = require("pdf-extraction");
 const Tesseract = require("tesseract.js");
 
@@ -7,102 +8,189 @@ const { ChatGroq } = require("@langchain/groq");
 const { ChatPromptTemplate } = require("@langchain/core/prompts");
 const { StringOutputParser } = require("@langchain/core/output_parsers");
 
-// Initialize LangChain Chat Model
+// Initialize Groq Model (Llama 3 is fast & accurate)
 const model = new ChatGroq({
   apiKey: process.env.GROQ_API_KEY,
   model: "llama-3.3-70b-versatile",
-  temperature: 0, // Keep it deterministic
+  temperature: 0.2, // Low creativity for medical accuracy
 });
 
-// Helper: Extract Text from PDF
-async function extractTextFromPDF(filePath) {
+// --- HELPER: Read File ---
+async function extractText(filePath, fileType) {
   try {
-    const dataBuffer = fs.readFileSync(filePath);
-    const data = await pdf(dataBuffer);
-    return data.text;
-  } catch (err) {
-    console.error("❌ PDF Error:", err);
-    return "";
-  }
-}
-
-// Helper: Extract Text from Image (OCR)
-async function extractTextFromImage(filePath) {
-  try {
-    console.log("📸 Starting OCR...");
-    const { data: { text } } = await Tesseract.recognize(filePath, 'eng');
-    return text;
-  } catch (err) {
-    console.error("❌ OCR Error:", err);
-    return "";
-  }
-}
-
-async function analyzeMedicalReport(filePath, fileType) {
-  try {
-    let textData = "";
-
-    // 1. Extraction Logic (Same as before)
-    if (fileType === "application/pdf") {
-      textData = await extractTextFromPDF(filePath);
-    } else if (fileType.startsWith("image/")) {
-      textData = await extractTextFromImage(filePath);
-    } else {
+    if (!fs.existsSync(filePath)) {
+      console.error("❌ File not found:", filePath);
       return null;
     }
 
-    if (!textData || textData.trim().length < 20) {
-      console.warn("⚠️ Text is too short/empty.");
-      return null;
+    // PDF Handling
+    if (fileType.includes("pdf") || filePath.endsWith(".pdf")) {
+      const dataBuffer = fs.readFileSync(filePath);
+      const data = await pdf(dataBuffer);
+
+      // 🚨 Check if PDF text is empty (likely scanned)
+      if (!data.text || data.text.trim().length < 50) {
+        console.warn("⚠️ Warning: PDF appears to be empty or scanned.");
+        return "SCANNED_PDF_ERROR";
+      }
+      return data.text;
     }
-
-    console.log("🦜🔗 LangChain is processing...");
-
-    // 2. Define the Prompt Template (The "Instruction Manual")
-    const promptTemplate = ChatPromptTemplate.fromMessages([
-      ["system", "You are an expert medical AI assistant. You strictly output only valid JSON. No Markdown."],
-      ["human", `Analyze the following medical text and extract data into this exact JSON structure:
-      {{
-        "hospitalVisits": [{{ "hospital": "String", "date": "YYYY-MM-DD" }}],
-        "tests": [{{ "name": "String", "result": "String" }}],
-        "medicines": [{{ "name": "String", "dosage": "String" }}],
-        "diseases": [{{ "name": "String", "status": "String" }}]
-      }}
-
-      CRITICAL RULES:
-      1. If a field is missing, use an empty array [].
-      2. For 'diseases', include both "History of" conditions (like Hypertension) and current symptoms (like Chest Pain).
-      3. For 'tests', look for lab values (e.g., "Hemoglobin: 13.5").
-      4. Return ONLY the raw JSON string. Do not wrap it in \`\`\`json.
-
-      MEDICAL TEXT:
-      {text}`]
-    ]);
-
-    // 3. Create the Chain (Prompt -> Model -> Parser)
-    const chain = promptTemplate.pipe(model).pipe(new StringOutputParser());
-
-    // 4. Run the Chain
-    const aiResponse = await chain.invoke({
-      text: textData.substring(0, 15000) // Pass variable to template
-    });
-
-    // 5. Clean & Parse
-    // Even with LangChain, Llama 3 sometimes adds a tiny bit of whitespace
-    const jsonStart = aiResponse.indexOf('{');
-    const jsonEnd = aiResponse.lastIndexOf('}');
-    
-    if (jsonStart === -1 || jsonEnd === -1) throw new Error("Invalid JSON output from LangChain");
-
-    const cleanJson = aiResponse.substring(jsonStart, jsonEnd + 1);
-    console.log("✅ LangChain Analysis Complete!");
-
-    return JSON.parse(cleanJson);
-
-  } catch (error) {
-    console.error("❌ LangChain Error:", error.message);
+    // Image Handling
+    else {
+      console.log("📸 OCR scanning image...");
+      const { data: { text } } = await Tesseract.recognize(filePath, 'eng');
+      return text;
+    }
+  } catch (err) {
+    console.error("❌ Extraction Error:", err.message);
     return null;
   }
 }
 
-module.exports = { analyzeMedicalReport };
+// --- FUNCTION 1: ANALYZE (Generates JSON Summary) ---
+async function analyzeMedicalReport(filePath, fileType) {
+  try {
+    const textData = await extractText(filePath, fileType);
+
+    if (textData === "SCANNED_PDF_ERROR") {
+      throw new Error("SCANNED_PDF_ERROR");
+    }
+    if (!textData) return null;
+
+    const prompt = ChatPromptTemplate.fromMessages([
+      ["system", "You are a medical AI. Extract structured data as JSON. Return ONLY valid JSON. No Markdown. No ```json tags. If a field is not found, use an empty array or null string."],
+      ["human", `Extract medical details from this text:
+      {text}
+      
+      Format strictly as valid JSON:
+      {{
+        "hospitalVisits": [{{ "hospital": "String", "date": "String" }}],
+        "tests": [{{ "name": "String", "result": "String" }}],
+        "medicines": [{{ "name": "String", "dosage": "String" }}],
+        "diseases": [{{ "name": "String", "status": "String" }}]
+      }}
+      `]
+    ]);
+
+    const chain = prompt.pipe(model).pipe(new StringOutputParser());
+    console.log("🤖 AI Analysis Started...");
+    const response = await chain.invoke({ text: textData.substring(0, 15000) });
+
+    // Robust JSON Extraction (Regex)
+    const jsonMatch = response.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      console.error("❌ No JSON found in AI response");
+      return {};
+    }
+
+    return JSON.parse(jsonMatch[0]);
+
+  } catch (error) {
+    if (error.message === "SCANNED_PDF_ERROR") throw error; // Re-throw for server handling
+    console.error("Analysis Error:", error.message);
+    return null; // Return null for generic errors to prevent crash
+  }
+}
+
+// --- FUNCTION 2: CHAT (Answers Questions) 🆕 ---
+async function chatWithReport(filePath, fileType, userQuestion) {
+  try {
+    const textData = await extractText(filePath, fileType);
+
+    if (textData === "SCANNED_PDF_ERROR") {
+      return "This appears to be a scanned PDF. I cannot read the text inside it. Please upload a clear image of the report instead.";
+    }
+    if (!textData) return "I cannot read this file. It might be corrupted or missing.";
+
+    console.log(`💬 Analyzing Question: "${userQuestion}"`);
+
+    const prompt = ChatPromptTemplate.fromMessages([
+      ["system", "You are an empathetic and knowledgeable medical tutor AI. Your goal is to explain medical reports to patients in simple, easy-to-understand language. \n\nWhen answering:\n1. Simplify complex medical terms.\n2. Explain the **ROOT CAUSE** of the condition found in the report.\n3. Suggest **PREVENTIVE MEASURES** and lifestyle changes.\n4. Be comforting but professional.\n\nAnswer based ONLY on the report content below. If the answer is not in the report, say so."],
+      ["human", `
+      REPORT CONTENT:
+      {context}
+      
+      USER QUESTION: {question}
+      `]
+    ]);
+
+    const chain = prompt.pipe(model).pipe(new StringOutputParser());
+
+    const response = await chain.invoke({
+      context: textData.substring(0, 20000), // Larger context for chat
+      question: userQuestion
+    });
+
+    return response;
+
+  } catch (error) {
+    console.error("Chat Logic Error:", error);
+    return "I am having trouble analyzing this document right now.";
+  }
+}
+
+// --- FUNCTION 3: GENERAL CHAT (No Document) 🆕 ---
+async function chatWithAI(userMessage) {
+  try {
+    console.log(`🤖 General Chat: "${userMessage}"`);
+
+    const prompt = ChatPromptTemplate.fromMessages([
+      ["system", "You are MediVault AI, a friendly and knowledgeable health assistant. Answer general health, fitness, and nutrition questions. Do NOT verify medical documents here. Do NOT diagnose serious conditions—always advise seeing a doctor for that. Keep answers concise and easier to read (use bullet points if needed)."],
+      ["human", "{question}"]
+    ]);
+
+    const chain = prompt.pipe(model).pipe(new StringOutputParser());
+
+    const response = await chain.invoke({
+      question: userMessage
+    });
+
+    return response;
+
+  } catch (error) {
+    console.error("General Chat Error:", error);
+    return "I'm having a bit of trouble connecting to my brain right now. Try again?";
+  }
+}
+
+// --- FUNCTION 4: DOCTOR TOOLS (Risk/Drugs) 🆕 ---
+async function getAIAnalysis(type, input) {
+  try {
+    let systemPrompt = "";
+    let userPrompt = "";
+
+    if (type === "symptoms") {
+      systemPrompt = "You are an expert diagnostic assistant. Analyze the symptoms provided. Return a JSON object with: { \"risk\": \"Low/Medium/High\", \"score\": 0-100, \"condition\": \"Most likely condition\", \"explanation\": \"Brief explanation\", \"tests\": [\"List of recommended tests\"] }. Return ONLY valid JSON.";
+      userPrompt = `Patient Symptoms: ${input}`;
+    } else if (type === "drugs") {
+      systemPrompt = "You are a clinical pharmacist AI. Analyze the drug list for interactions. Return a JSON object with: { \"status\": \"✅ Safe / ⚠️ Caution / ❌ Unsafe\", \"message\": \"Brief summary of interactions\", \"details\": \"Detailed explanation of specific interactions\" }. Return ONLY valid JSON.";
+      userPrompt = `Medications: ${input}`;
+    }
+
+    const prompt = ChatPromptTemplate.fromMessages([
+      ["system", systemPrompt],
+      ["human", userPrompt]
+    ]);
+
+    const chain = prompt.pipe(model).pipe(new StringOutputParser());
+    console.log(`🩺 AI Analysis (${type}): "${input.substring(0, 50)}..."`);
+
+    const response = await chain.invoke({});
+    console.log("🤖 Raw AI Response:", response); // 🆕 Debug log
+
+    // Extract JSON
+    const jsonMatch = response.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      console.warn("⚠️ No JSON found in AI response");
+      return null;
+    }
+    return JSON.parse(jsonMatch[0]);
+
+  } catch (error) {
+    console.error("❌ AI Tool Error:", error);
+    return null;
+  }
+}
+
+// Export ALL functions
+module.exports = { analyzeMedicalReport, chatWithReport, chatWithAI, getAIAnalysis };

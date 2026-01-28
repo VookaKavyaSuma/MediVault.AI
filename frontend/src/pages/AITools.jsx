@@ -1,6 +1,7 @@
 import Navbar from "../components/Navbar";
 import { useState } from "react";
-import "./../styles/Home.css"; // Reuse home styles for layout
+import "./../styles/Home.css";
+import "./../styles/AITools.css";
 
 function AITools() {
   const [activeTab, setActiveTab] = useState("symptoms");
@@ -36,50 +37,44 @@ function AITools() {
         <p>Advanced diagnostic support and risk assessment tools.</p>
 
         {/* Tools Switcher */}
-        <div style={{ display: "flex", gap: "15px", marginBottom: "20px" }}>
+        <div className="tools-switcher">
           <button
+            className={`tool-tab ${activeTab === "symptoms" ? "active" : ""}`}
             onClick={() => { setActiveTab("symptoms"); setResult(null); setInput(""); }}
-            style={{
-              background: activeTab === "symptoms" ? "#1e88e5" : "#e0e0e0",
-              color: activeTab === "symptoms" ? "white" : "black"
-            }}
           >
             🦠 Risk Predictor
           </button>
           <button
+            className={`tool-tab ${activeTab === "drugs" ? "active" : ""}`}
             onClick={() => { setActiveTab("drugs"); setResult(null); setInput(""); }}
-            style={{
-              background: activeTab === "drugs" ? "#1e88e5" : "#e0e0e0",
-              color: activeTab === "drugs" ? "white" : "black"
-            }}
           >
             💊 Drug Interactions
           </button>
         </div>
 
         {/* Input Area */}
-        <div style={{ background: "white", padding: "25px", borderRadius: "12px", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
+        <div className="input-card">
           <h3>
             {activeTab === "symptoms" ? "Enter Patient Symptoms" : "Enter Two Medicines"}
           </h3>
-          <p style={{ fontSize: "13px", color: "#666", marginBottom: "10px" }}>
-            {activeTab === "symptoms" 
-              ? "Example: chest pain, shortness of breath, dizziness" 
+          <p>
+            {activeTab === "symptoms"
+              ? "Example: chest pain, shortness of breath, dizziness"
               : "Example: Aspirin, Ibuprofen"}
           </p>
-          
+
           <textarea
-            rows="3"
+            className="tools-textarea"
+            rows="4"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #ccc", fontSize: "16px" }}
             placeholder={activeTab === "symptoms" ? "Type symptoms here..." : "Type drug names here..."}
           ></textarea>
 
-          <button 
-            onClick={handleAnalyze} 
+          <button
+            className="analyze-btn"
+            onClick={handleAnalyze}
             disabled={loading}
-            style={{ marginTop: "15px", width: "100%", background: loading ? "#90caf9" : "#2e7d32", color: "white" }}
           >
             {loading ? "Analyzing..." : "Run AI Analysis ⚡"}
           </button>
@@ -87,18 +82,31 @@ function AITools() {
 
         {/* Results Display */}
         {result && (
-          <div style={{ marginTop: "25px", padding: "20px", background: "#f1f8e9", borderLeft: "5px solid #2e7d32", borderRadius: "8px" }}>
+          <div className="result-box">
             {activeTab === "symptoms" ? (
               <>
-                <h2 style={{ margin: 0, color: "#2e7d32" }}>Risk Level: {result.risk} ({result.score}%)</h2>
-                <p style={{ fontSize: "18px", marginTop: "10px" }}>Potential Condition: <b>{result.condition}</b></p>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
+                  <h2 className="result-header" style={{ margin: 0 }}>Risk: {result.risk} ({result.score}%)</h2>
+                  <span style={{ background: "rgba(255,255,255,0.1)", padding: "5px 10px", borderRadius: "10px", fontSize: "0.9rem" }}>CONFIDENCE SCORE</span>
+                </div>
+
+                <p style={{ fontSize: "1.2rem", marginBottom: "15px", color: "#fff" }}>Most Likely: <b>{result.condition}</b></p>
+                <p style={{ color: "rgba(255,255,255,0.7)", marginBottom: "20px" }}>{result.explanation}</p>
+
+                <div style={{ background: "rgba(0,0,0,0.2)", padding: "15px", borderRadius: "10px" }}>
+                  <strong style={{ display: "block", marginBottom: "10px", color: "#60a5fa" }}>Recommended Tests:</strong>
+                  <ul style={{ paddingLeft: "20px", margin: 0, color: "rgba(255,255,255,0.8)" }}>
+                    {result.tests?.map((test, i) => <li key={i}>{test}</li>)}
+                  </ul>
+                </div>
               </>
             ) : (
               <>
-                <h2 style={{ margin: 0, color: result.status.includes("Safe") ? "green" : "red" }}>
+                <h2 style={{ margin: "0 0 15px 0", color: result.status.includes("Safe") ? "#4ade80" : result.status.includes("Caution") ? "#facc15" : "#f87171" }}>
                   {result.status}
                 </h2>
-                <p style={{ fontSize: "18px", marginTop: "10px" }}>{result.message}</p>
+                <p style={{ fontSize: "1.1rem", marginBottom: "15px", fontWeight: "600" }}>{result.message}</p>
+                <p style={{ color: "rgba(255,255,255,0.7)", lineHeight: "1.6" }}>{result.details}</p>
               </>
             )}
           </div>

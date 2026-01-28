@@ -9,10 +9,9 @@ function Login() {
 
   const navigate = useNavigate();
 
-  const correctEmail = "admin@medivault.ai";
-  const correctPassword = "admin123";
 
-const handleLogin = async (e) => {
+
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError(""); // Clear previous errors
 
@@ -32,7 +31,7 @@ const handleLogin = async (e) => {
         localStorage.setItem("role", data.role);
         localStorage.setItem("patientName", data.name);
         localStorage.setItem("email", data.email);
-        
+
         // 3. Redirect
         navigate("/home");
       } else {
@@ -74,7 +73,7 @@ const handleLogin = async (e) => {
         </form>
 
         <p className="footer-text">
-          Don’t have an account? 
+          Don’t have an account?
           <span onClick={() => navigate("/signup")}>Sign up</span>
         </p>
       </div>

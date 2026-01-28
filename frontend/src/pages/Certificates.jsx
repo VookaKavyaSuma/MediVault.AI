@@ -1,17 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Navbar from "../components/Navbar";
 import "./../styles/Certificates.css";
 
 function Certificates() {
   const role = localStorage.getItem("role");
   const [certificates, setCertificates] = useState([]);
-
-  // 1. Fetch Real Certificates from Backend
-  useEffect(() => {
-    fetchCertificates();
-  }, []);
-
-  const fetchCertificates = async () => {
+  const fetchCertificates = useCallback(async () => {
     try {
       const res = await fetch("/api/records");
       const data = await res.json();
@@ -21,7 +15,12 @@ function Certificates() {
     } catch (error) {
       console.error("Error fetching certificates:", error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchCertificates();
+  }, [fetchCertificates]);
 
   // 2. Handle Upload (For Doctors)
   const handleUpload = async (e) => {

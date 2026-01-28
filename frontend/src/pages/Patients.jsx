@@ -31,9 +31,9 @@ function Patients() {
         <p>List of all registered patients in MediVault.</p>
 
         {loading ? (
-           <p>Loading patients...</p>
+          <p>Loading patients...</p>
         ) : patients.length === 0 ? (
-           <p>No patients registered yet.</p>
+          <p>No patients registered yet.</p>
         ) : (
           <div className="records-table">
             <table>
@@ -49,7 +49,7 @@ function Patients() {
                 {patients.map((p) => (
                   <tr key={p._id}>
                     <td>
-                      <div style={{fontWeight: "bold", color: "#1e88e5"}}>
+                      <div style={{ fontWeight: "bold", color: "#1e88e5" }}>
                         {p.name}
                       </div>
                     </td>
@@ -57,11 +57,13 @@ function Patients() {
                     <td>{new Date(p.dateJoined).toLocaleDateString()}</td>
                     <td>
                       <span style={{
-                        backgroundColor: "#e8f5e9", 
-                        color: "#2e7d32", 
-                        padding: "4px 8px", 
+                        background: "rgba(16, 185, 129, 0.2)",
+                        color: "#4ade80",
+                        border: "1px solid rgba(16, 185, 129, 0.3)",
+                        padding: "4px 12px",
                         borderRadius: "12px",
-                        fontSize: "12px"
+                        fontSize: "12px",
+                        fontWeight: "500"
                       }}>
                         Active
                       </span>
