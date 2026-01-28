@@ -1,5 +1,5 @@
 import Navbar from "../components/Navbar";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import "./../styles/AISummary.css";
 import toast from 'react-hot-toast';
 import {
@@ -32,10 +32,13 @@ function AISummary() {
 
   const fetchSummaries = async () => {
     try {
-      const email = localStorage.getItem("email"); // 🆕
+      const email = localStorage.getItem("email");
       const res = await fetch(`/api/records?email=${email}`);
       const data = await res.json();
+      // Filter for records that actually have AI analysis
       const analyzed = data.filter(record => record.aiSummary);
+      // Sort by date (Oldest -> Newest) for the chart to look right
+      analyzed.sort((a, b) => new Date(a.uploadDate) - new Date(b.uploadDate));
       setSummaries(analyzed);
     } catch (error) {
       console.error(error);
@@ -44,6 +47,44 @@ function AISummary() {
       setLoading(false);
     }
   };
+
+  // 🧠 ALGORITHM: Calculate Health Score Trend
+  const chartData = useMemo(() => {
+    if (summaries.length === 0) return null;
+
+    const labels = [];
+    const scores = [];
+
+    summaries.forEach((record) => {
+      let score = 100; // Start with perfect health
+
+      // Penalty: -10 per Disease detected
+      if (record.aiSummary.diseases) {
+        score -= (record.aiSummary.diseases.length * 10);
+      }
+
+      // Penalty: -2 per Medicine (Minor impact for maintenance meds)
+      if (record.aiSummary.medicines) {
+        score -= (record.aiSummary.medicines.length * 2);
+      }
+
+      // Clamp score between 0 and 100
+      score = Math.max(0, Math.min(score, 100));
+
+      // Add to data arrays
+      const date = new Date(record.uploadDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      labels.push(date);
+      scores.push(score);
+    });
+
+    return { labels, scores };
+  }, [summaries]);
+
+  // Determine Overall Status based on latest score
+  const latestScore = chartData?.scores[chartData.scores.length - 1] || 100;
+  const healthStatus = latestScore > 80 ? "Excellent" : latestScore > 50 ? "Stable" : "Critical Attention Needed";
+  const statusColor = latestScore > 80 ? "#10b981" : latestScore > 50 ? "#facc15" : "#ef4444";
+
 
   const handleSendMessage = async () => {
     if (!inputMsg.trim()) return;
@@ -89,12 +130,14 @@ function AISummary() {
           <div className="health-score-card">
             <div className="score-info">
               <span>Overall Health Trend</span>
-              <h3>Stable</h3>
+              <h3 style={{ color: statusColor }}>{healthStatus}</h3>
+              <small style={{ opacity: 0.6 }}>Score: {latestScore}/100</small>
             </div>
             <div className="mini-chart">
-              <HealthTrendChart />
+              {/* Pass real data to chart */}
+              <HealthTrendChart dataPoints={chartData} />
             </div>
-            {/* 🆕 RESTORE BUTTON */}
+            {/* RESTORE BUTTON */}
             <button
               onClick={async () => {
                 const email = localStorage.getItem("email");
@@ -121,7 +164,8 @@ function AISummary() {
           </div>
         ) : (
           <div className="reports-grid">
-            {summaries.map((record) => (
+            {/* We map REVERSED summaries to show newest first in the grid */}
+            {[...summaries].reverse().map((record) => (
               <div key={record._id} className="report-card">
                 <div className="card-top">
                   <div className="icon-box">📄</div>
@@ -206,19 +250,42 @@ function AISummary() {
   );
 }
 
-// Simple Sparkline Chart
-const HealthTrendChart = () => {
+// 🆕 UPDATED: Dynamic Sparkline Chart
+const HealthTrendChart = ({ dataPoints }) => {
+  // Fallback for empty state
+  const labels = dataPoints?.labels?.length ? dataPoints.labels : ['No Data'];
+  const scores = dataPoints?.scores?.length ? dataPoints.scores : [100];
+
   const data = {
-    labels: ['1', '2', '3', '4', '5'],
+    labels: labels,
     datasets: [{
-      data: [65, 78, 72, 85, 90],
-      borderColor: '#10b981',
+      data: scores,
+      borderColor: '#10b981', // Green line
+      backgroundColor: 'rgba(16, 185, 129, 0.2)', // Slight fill under line
       borderWidth: 2,
-      pointRadius: 0,
-      tension: 0.4
+      pointRadius: 3, // Show points
+      tension: 0.4, // Smooth curves
+      fill: true
     }]
   };
-  const options = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } };
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: (context) => `Health Score: ${context.raw}`
+        }
+      }
+    },
+    scales: {
+      x: { display: false }, // Hide dates for clean look (tooltip shows them)
+      y: { display: false, min: 0, max: 110 } // Keep scale consistent
+    }
+  };
+
   return <Line data={data} options={options} />;
 }
 
