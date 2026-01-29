@@ -13,7 +13,14 @@ const Notification = require('./models/Notification');
 const User = require('./models/User');
 const Record = require('./models/Record');
 const SharedLink = require('./models/SharedLink');
-const { analyzeMedicalReport, chatWithReport, chatWithAI } = require('./utils/aiHandler');
+
+// 🧠 AI HANDLER IMPORT (Unified)
+const { 
+  analyzeMedicalReport, 
+  chatWithReport, 
+  chatWithAI, 
+  getAIAnalysis 
+} = require('./utils/aiHandler');
 
 // --- CONFIGURATION ---
 const app = express();
@@ -28,9 +35,8 @@ app.use(cors({
 app.use(express.json());
 
 // Serve static files (Images/PDFs)
-// Uses __dirname to ensure it always finds the folder relative to server.js
 const UPLOADS_DIR = path.join(__dirname, 'uploads');
-if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR); // Auto-create folder if missing
+if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR);
 app.use('/uploads', express.static(UPLOADS_DIR));
 
 // Database Connection
@@ -90,20 +96,42 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// 2.1 USER: UPDATE PROFILE 🆕
+// 2.2 USER: GET PROFILE (New) 🆕
+app.get('/api/profile', async (req, res) => {
+  try {
+    const { email } = req.query;
+    if (!email) return res.status(400).json({ success: false, message: "Email required" });
+
+    const user = await User.findOne({ email }).select('-password'); // Don't send password
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+    res.json({ success: true, user });
+  } catch (error) {
+    console.error("Profile Fetch Error:", error);
+    res.status(500).json({ success: false });
+  }
+});
+
+// 2.1 USER: UPDATE PROFILE
 app.post('/api/profile/update', async (req, res) => {
   try {
-    const { email, bloodGroup, allergies, emergencyContact } = req.body;
+    const { email, bloodGroup, allergies, emergencyContact, hospitalName, specializedIn } = req.body;
 
-    // Find and update
+    // Dynamic update object based on what is sent
+    const updateFields = {};
+    if (bloodGroup) updateFields.bloodGroup = bloodGroup;
+    if (allergies) updateFields.allergies = allergies;
+    if (emergencyContact) updateFields.emergencyContact = emergencyContact;
+    if (hospitalName) updateFields.hospitalName = hospitalName;
+    if (specializedIn) updateFields.specializedIn = specializedIn;
+
     const user = await User.findOneAndUpdate(
       { email },
-      { $set: { bloodGroup, allergies, emergencyContact } },
-      { new: true } // Return updated doc
+      { $set: updateFields },
+      { new: true }
     );
 
     if (!user) return res.status(404).json({ success: false, message: "User not found" });
-
     res.json({ success: true, user });
   } catch (error) {
     console.error("Profile Update Error:", error);
@@ -111,15 +139,15 @@ app.post('/api/profile/update', async (req, res) => {
   }
 });
 
-// 3. CORE: UPLOAD & ANALYZE (The Brain 🧠)
+// 3. CORE: UPLOAD & ANALYZE
 app.post('/api/upload', upload.single('file'), async (req, res) => {
   if (!req.file) return res.status(400).send('No file uploaded.');
 
   try {
     console.log("🤖 AI Analyzing:", req.file.originalname);
-    let { userEmail, targetEmail, doctorName } = req.body; // 🆕 targetEmail & doctorName
+    let { userEmail, targetEmail, doctorName } = req.body;
 
-    // Doctor Upload Logic
+    // Doctor Upload Logic (Certificate Issue)
     let issuedBy = null;
     if (targetEmail && doctorName) {
       userEmail = targetEmail; // Assign to patient
@@ -128,19 +156,19 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
 
     if (!userEmail) return res.status(400).json({ success: false, message: "User email required." });
 
-    // Call AI Handler (LangChain)
+    // Call AI Handler
     const aiResult = await analyzeMedicalReport(req.file.path, req.file.mimetype);
 
     // Create Record
     const newRecord = new Record({
-      patientName: "Patient", // In prod, get from JWT/Session
+      patientName: "Patient", 
       fileName: req.file.originalname,
       storedFileName: req.file.filename,
       fileUrl: `http://localhost:${PORT}/uploads/${req.file.filename}`,
       fileType: req.file.mimetype,
       uploadDate: new Date(),
-      userEmail: userEmail, // 🆕 Save owner email
-      issuedBy: issuedBy,   // 🆕 Save doctor name
+      userEmail: userEmail,
+      issuedBy: issuedBy,
       aiSummary: aiResult || {}
     });
 
@@ -149,30 +177,27 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
 
     // Create Notification
     await new Notification({
-      title: "AI Analysis Ready",
-      message: `Report "${req.file.originalname}" has been processed.`,
+      title: issuedBy ? "New Certificate Issued" : "AI Analysis Ready",
+      message: issuedBy ? `Dr. ${issuedBy} sent you a document.` : `Report "${req.file.originalname}" has been processed.`,
       type: "success",
-      userEmail: userEmail // 🆕 Save owner email
+      userEmail: userEmail
     }).save();
 
     res.json({ success: true, record: newRecord });
 
   } catch (error) {
     console.error("Upload Error:", error.message);
-
-    // 🚨 Specific Error Handling for Scanned PDFs
     if (error.message === "SCANNED_PDF_ERROR") {
       return res.status(422).json({
         success: false,
-        message: "This appears to be a scanned PDF. Access denied. Please upload an image (JPG/PNG) instead so we can read it."
+        message: "This appears to be a scanned PDF. Please upload an image (JPG/PNG) instead."
       });
     }
-
-    res.status(500).json({ success: false, message: "Upload failed due to server error." });
+    res.status(500).json({ success: false, message: "Upload failed." });
   }
 });
 
-// 4. CORE: CHAT WITH DOCUMENT (RAG) 💬
+// 4. CORE: CHAT WITH DOCUMENT (RAG)
 app.post('/api/chat-document', async (req, res) => {
   const { recordId, question } = req.body;
 
@@ -180,17 +205,13 @@ app.post('/api/chat-document', async (req, res) => {
     const record = await Record.findById(recordId);
     if (!record) return res.status(404).json({ reply: "Record not found." });
 
-    // Precise path resolution
-    // Use storedFileName if available, otherwise try to extract from URL or fallback to original (which might be wrong but legacy support)
     const diskFileName = record.storedFileName || (record.fileUrl ? record.fileUrl.split('/').pop() : record.fileName);
     const filePath = path.join(__dirname, 'uploads', diskFileName);
 
     if (!fs.existsSync(filePath)) {
-      console.error("❌ File Missing:", filePath);
       return res.json({ reply: "I can't read the file (it might have been deleted from the server)." });
     }
 
-    // Call Chat AI
     const answer = await chatWithReport(filePath, record.fileType, question);
     res.json({ reply: answer });
 
@@ -200,23 +221,42 @@ app.post('/api/chat-document', async (req, res) => {
   }
 });
 
-// 4.1 GENERAL CHAT 💬
+// 4.1 GENERAL CHAT
+// ... existing imports ...
+
+// 4.1 CONTEXT-AWARE GENERAL CHAT 💬 (UPDATED)
 app.post('/api/chat', async (req, res) => {
-  const { message } = req.body;
+  const { message, userEmail } = req.body; // 🆕 Receive Email
+
   try {
-    const reply = await chatWithAI(message);
+    let patientHistory = [];
+
+    // 1. Fetch User History if email is provided
+    if (userEmail) {
+      // Fetch only necessary fields to save tokens
+      patientHistory = await Record.find({ userEmail })
+        .sort({ uploadDate: 1 }) // Oldest to Newest
+        .select('uploadDate aiSummary') // Only get AI data
+        .limit(10); // Limit to last 10 records to fit context window
+    }
+
+    // 2. Call AI with History
+    const reply = await chatWithAI(message, patientHistory);
     res.json({ reply });
+
   } catch (error) {
+    console.error("Chat Route Error:", error);
     res.status(500).json({ reply: "Server Error." });
   }
 });
 
+
+
 // 5. DATA: GET RECORDS
 app.get('/api/records', async (req, res) => {
   try {
-    const { email, migrate } = req.query; // 🆕 Filter by email & Migration Flag
+    const { email, migrate } = req.query;
 
-    // 🛠️ MIGRATION LOGIC: unclaimed files -> current user
     if (migrate === "true" && email) {
       const result = await Record.updateMany(
         { userEmail: { $exists: false } },
@@ -228,7 +268,6 @@ app.get('/api/records', async (req, res) => {
     const filter = email ? { userEmail: email } : {};
     let records = await Record.find(filter).sort({ uploadDate: -1 });
 
-    // 🔄 DYNAMIC URL FIX
     const host = req.get('host');
     records = records.map(doc => ({
       ...doc._doc,
@@ -254,7 +293,7 @@ app.delete('/api/records/:id', async (req, res) => {
 // 7. DATA: NOTIFICATIONS
 app.get('/api/notifications', async (req, res) => {
   try {
-    const { email } = req.query; // 🆕 Filter by email
+    const { email } = req.query;
     const filter = email ? { userEmail: email } : {};
     const notifs = await Notification.find(filter).sort({ date: -1 });
     res.json(notifs);
@@ -290,12 +329,12 @@ app.post('/api/share', async (req, res) => {
       token,
       patientId: patient._id,
       patientName: patient.name,
-      patientValues: { // Snapshot of vital info
+      patientValues: {
         bloodGroup: patient.bloodGroup,
         allergies: patient.allergies,
         emergencyContact: patient.emergencyContact
       },
-      expiresAt: new Date(Date.now() + 15 * 60 * 1000) // 15 mins
+      expiresAt: new Date(Date.now() + 15 * 60 * 1000)
     });
 
     await newLink.save();
@@ -308,28 +347,13 @@ app.post('/api/share', async (req, res) => {
 app.get('/api/share/:token', async (req, res) => {
   try {
     const link = await SharedLink.findOne({ token: req.params.token });
-    if (!link) { // Removed expiry check for "Emergency" context or keep it? 
-      // If the UI says "Permanent", we should look at expiry. 
-      // But sticking to the specific fix: fetch fresh data.
-      // We will verify expiry still, assuming user just generated it.
-      return res.status(403).json({ success: false, message: "Invalid Link" });
-    }
+    if (!link) return res.status(403).json({ success: false, message: "Invalid Link" });
 
-    // 🆕 FETCH FRESH DATA (Fixes "Not Updated" issue)
-    // Instead of using the snapshot (link.patientValues), fetch the User directly.
     const patient = await User.findById(link.patientId);
     if (!patient) return res.json({ success: false, message: "Patient not found" });
 
-    const livePatientValues = {
-      bloodGroup: patient.bloodGroup,
-      allergies: patient.allergies,
-      emergencyContact: patient.emergencyContact
-    };
+    let records = await Record.find({ userEmail: patient.email }).sort({ uploadDate: -1 });
 
-    let records = await Record.find().sort({ uploadDate: -1 }); // Filter by patientId in real app
-
-    // 🔄 DYNAMIC URL REPLACEMENT (Fixes Mobile Access)
-    // Replaces 'localhost:5001' with valid Network IP (e.g., '192.168.1.5:5001')
     const host = req.get('host');
     records = records.map(doc => ({
       ...doc._doc,
@@ -338,8 +362,12 @@ app.get('/api/share/:token', async (req, res) => {
 
     res.json({
       success: true,
-      patientName: patient.name, // Use live name too
-      patientValues: livePatientValues, // 🆕 Return LIVE data
+      patientName: patient.name,
+      patientValues: {
+        bloodGroup: patient.bloodGroup,
+        allergies: patient.allergies,
+        emergencyContact: patient.emergencyContact
+      },
       records
     });
   } catch (error) {
@@ -347,21 +375,16 @@ app.get('/api/share/:token', async (req, res) => {
   }
 });
 
-// 10. FEATURES: AI TOOLS (Real AI)
+// 10. FEATURES: AI TOOLS (Unified & Safe)
 app.post('/api/ai-predict', async (req, res) => {
   const { type, input } = req.body;
-
-  // 🆕 Import function (needs to be destructured from require at top, or just use aiHandler object if imported that way)
-  // Since we required specific functions at the top, we need to update that import too.
-  // But for now, let's fix the import at the top of the file in a separate step or assume I can access it.
-  // Wait, I need to update line 16 to import getAIAnalysis first.
-
-  // Let's assume I will update the import in the next step. 
-  // Here I will just write the route logic.
+  
+  if (!getAIAnalysis) {
+    console.error("❌ AI Handler function missing!");
+    return res.status(500).json({ success: false, message: "AI Service Unavailable" });
+  }
 
   try {
-    // We will use the imported function
-    const { getAIAnalysis } = require('./utils/aiHandler'); // Lazy import ensures we get the latest
     const result = await getAIAnalysis(type, input);
 
     if (result) {
@@ -370,6 +393,7 @@ app.post('/api/ai-predict', async (req, res) => {
       res.status(500).json({ success: false, message: "AI Analysis Failed" });
     }
   } catch (error) {
+    console.error("AI Route Error:", error);
     res.status(500).json({ success: false });
   }
 });

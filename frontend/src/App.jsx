@@ -14,6 +14,7 @@ import Signup from "./pages/Signup";
 import Patients from "./pages/Patients";
 import SharedRecords from "./pages/SharedRecords";
 import AITools from "./pages/AITools";
+import Profile from "./pages/Profile";
 
 function App() {
   return (
@@ -87,6 +88,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Patients />
+            </ProtectedRoute>
+          }
+        />
+        {/* 🆕 PROFILE ROUTE */}
+        <Route path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
             </ProtectedRoute>
           }
         />

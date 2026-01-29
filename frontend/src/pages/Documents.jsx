@@ -165,7 +165,7 @@ function Documents() {
                         className={`tab-btn ${activeTab === "certificates" ? "active" : ""}`}
                         onClick={() => updateTab("certificates")}
                     >
-                        📜 Certificates
+                        📜 Prescriptions
                     </button>
                 </div>
 

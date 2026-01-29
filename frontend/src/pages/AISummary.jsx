@@ -80,11 +80,28 @@ function AISummary() {
     return { labels, scores };
   }, [summaries]);
 
-  // Determine Overall Status based on latest score
-  const latestScore = chartData?.scores[chartData.scores.length - 1] || 100;
-  const healthStatus = latestScore > 80 ? "Excellent" : latestScore > 50 ? "Stable" : "Critical Attention Needed";
-  const statusColor = latestScore > 80 ? "#10b981" : latestScore > 50 ? "#facc15" : "#ef4444";
+  // 🆕 FIXED LOGIC: Handle Empty State Correctly
+  const hasData = summaries.length > 0;
+  
+  // Only calculate score if data exists, otherwise null
+  const latestScore = hasData ? chartData.scores[chartData.scores.length - 1] : null;
 
+  // Determine Status Text
+  let healthStatus = "No Data";
+  let statusColor = "#6b7280"; // Gray
+
+  if (hasData) {
+    if (latestScore > 80) {
+      healthStatus = "Excellent";
+      statusColor = "#10b981"; // Green
+    } else if (latestScore > 50) {
+      healthStatus = "Stable";
+      statusColor = "#facc15"; // Yellow
+    } else {
+      healthStatus = "Critical Attention Needed";
+      statusColor = "#ef4444"; // Red
+    }
+  }
 
   const handleSendMessage = async () => {
     if (!inputMsg.trim()) return;
@@ -131,11 +148,13 @@ function AISummary() {
             <div className="score-info">
               <span>Overall Health Trend</span>
               <h3 style={{ color: statusColor }}>{healthStatus}</h3>
-              <small style={{ opacity: 0.6 }}>Score: {latestScore}/100</small>
+              <small style={{ opacity: 0.6 }}>
+                {hasData ? `Score: ${latestScore}/100` : "Upload records to see score"}
+              </small>
             </div>
             <div className="mini-chart">
               {/* Pass real data to chart */}
-              <HealthTrendChart dataPoints={chartData} />
+              <HealthTrendChart dataPoints={chartData} hasData={hasData} />
             </div>
             {/* RESTORE BUTTON */}
             <button
@@ -250,22 +269,23 @@ function AISummary() {
   );
 }
 
-// 🆕 UPDATED: Dynamic Sparkline Chart
-const HealthTrendChart = ({ dataPoints }) => {
-  // Fallback for empty state
-  const labels = dataPoints?.labels?.length ? dataPoints.labels : ['No Data'];
-  const scores = dataPoints?.scores?.length ? dataPoints.scores : [100];
+// 🆕 UPDATED: Chart now handles empty state
+const HealthTrendChart = ({ dataPoints, hasData }) => {
+  // If no data, show a flat gray line
+  const labels = hasData ? dataPoints.labels : ['No Data', 'No Data', 'No Data'];
+  const scores = hasData ? dataPoints.scores : [0, 0, 0];
+  const color = hasData ? '#10b981' : '#4b5563'; // Green or Gray
 
   const data = {
     labels: labels,
     datasets: [{
       data: scores,
-      borderColor: '#10b981', // Green line
-      backgroundColor: 'rgba(16, 185, 129, 0.2)', // Slight fill under line
+      borderColor: color, 
+      backgroundColor: hasData ? 'rgba(16, 185, 129, 0.2)' : 'transparent',
       borderWidth: 2,
-      pointRadius: 3, // Show points
-      tension: 0.4, // Smooth curves
-      fill: true
+      pointRadius: hasData ? 3 : 0, 
+      tension: 0.4,
+      fill: hasData
     }]
   };
 
@@ -275,14 +295,15 @@ const HealthTrendChart = ({ dataPoints }) => {
     plugins: {
       legend: { display: false },
       tooltip: {
+        enabled: hasData, // Disable tooltip if no data
         callbacks: {
           label: (context) => `Health Score: ${context.raw}`
         }
       }
     },
     scales: {
-      x: { display: false }, // Hide dates for clean look (tooltip shows them)
-      y: { display: false, min: 0, max: 110 } // Keep scale consistent
+      x: { display: false },
+      y: { display: false, min: 0, max: 110 }
     }
   };
 

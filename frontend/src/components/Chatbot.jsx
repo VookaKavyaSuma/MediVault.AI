@@ -13,23 +13,28 @@ function Chatbot() {
     const userMsg = { sender: "user", text: input };
     setMessages((prev) => [...prev, userMsg]);
 
-    const userText = input; // Save text before clearing
+    const userText = input; 
     setInput("");
 
+    // 🆕 GET USER CONTEXT
+    const userEmail = localStorage.getItem("email");
+
     try {
-      // 2. Send to Backend
+      // 2. Send to Backend WITH Email
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userText }),
+        body: JSON.stringify({ 
+          message: userText,
+          userEmail: userEmail // 👈 Vital for "Memory"
+        }),
       });
 
       const data = await response.json();
 
-      // 3. Show Bot Response
       const botMsg = {
         sender: "bot",
-        text: data.reply // This comes from your server.js logic!
+        text: data.reply 
       };
       setMessages((prev) => [...prev, botMsg]);
 
@@ -55,20 +60,10 @@ function Chatbot() {
             <span>Ask AI</span>
           </>
         )}
-
         {open && (
-          <span
-            className="chatbot-close"
-            onClick={(e) => {
-              e.stopPropagation(); // Prevent re-opening
-              setOpen(false);
-            }}
-          >
-            ✕
-          </span>
+          <span className="chatbot-close" onClick={(e) => { e.stopPropagation(); setOpen(false); }}>✕</span>
         )}
       </div>
-
 
       {open && (
         <div className="chatbot-body">
@@ -77,10 +72,9 @@ function Chatbot() {
               <div style={{ textAlign: "center", color: "rgba(255,255,255,0.5)", marginTop: "100px" }}>
                 <div style={{ fontSize: "40px", marginBottom: "10px" }}>👋</div>
                 <p>Hi! I'm MediBot.</p>
-                <p style={{ fontSize: "0.9em" }}>Ask me anything about health!</p>
+                <p style={{ fontSize: "0.9em" }}>I can read your records. Ask me: <br/><i>"How is my health trending?"</i></p>
               </div>
             )}
-
             {messages.map((msg, idx) => (
               <div key={idx} className={msg.sender}>
                 {msg.text}
@@ -93,7 +87,7 @@ function Chatbot() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-              placeholder="Type your health question..."
+              placeholder="Ask about your health..."
             />
             <button onClick={sendMessage} disabled={!input.trim()}>🚀</button>
           </div>
