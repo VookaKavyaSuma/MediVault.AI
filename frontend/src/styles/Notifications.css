@@ -1,0 +1,90 @@
+/* Notifications.css - Glassmorphism Edition */
+
+.notifications-page {
+  /* padding-top: 80px; Removed to fix gap */
+  min-height: 100vh;
+  /* Transparent to show body gradient */
+  background: transparent;
+}
+
+.notifications-container {
+  max-width: 700px;
+  margin: auto;
+  padding: 20px;
+}
+
+.notifications-container h1 {
+  color: white;
+  margin-bottom: 30px;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.notification-card {
+  /* Glass Card */
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 15px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s ease;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.notification-card:hover {
+  transform: translateX(5px);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Unread Indicator */
+.notification-card.unread::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: #3b82f6;
+}
+
+.notification-card.read {
+  opacity: 0.6;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.notification-text h4 {
+  margin: 0;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.notification-text p {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.time {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+  white-space: nowrap;
+  margin-left: 15px;
+}
+
+.empty {
+  color: rgba(255, 255, 255, 0.5);
+  text-align: center;
+  margin-top: 50px;
+  font-style: italic;
+}
