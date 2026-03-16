@@ -94,11 +94,3 @@ Secure cloud storage integration
 This project is created for learning and academic purposes.
 
 
----
-
-### Small improvement you should do
-After adding the README, run:
-
-git add README.md
-git commit -m "Added project README"
-git push origin main
