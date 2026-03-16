@@ -45,13 +45,14 @@ React • Node.js • Express • MongoDB • Vite
 
 ## Project Structure
 
+```
 MediVault.AI
 │
 ├── frontend        # React frontend application
 ├── backend         # Node.js backend and APIs
 ├── README.md       # Project documentation
 └── .gitignore
-
+```
 
 ---
 
