@@ -133,9 +133,4 @@
   .records-table th {
     display: none;
   }
-
-  .records-table td button {
-    /* display: inline-block; */
-  }
-
 }
