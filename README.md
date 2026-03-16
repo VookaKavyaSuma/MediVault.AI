@@ -82,6 +82,7 @@ cd frontend
 npm install
 npm run dev
 ```
+---
 
 ### Future Improvements
 
@@ -90,6 +91,8 @@ Advanced AI medical insights
 Better document search and filtering
 Mobile responsive design improvements
 Secure cloud storage integration
+
+---
 
 ### License
 This project is created for learning and academic purposes.
